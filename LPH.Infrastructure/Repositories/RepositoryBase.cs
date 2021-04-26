@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LPH.Core.Interfaces;
 
-namespace LPH.Infrastucture.Repositories
+namespace LPH.Infrastructure.Repositories
 {
     public class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class, new()
     {
@@ -27,7 +27,7 @@ namespace LPH.Infrastucture.Repositories
 
 
 
-        public RepositoryBase(DbContext context)
+        public RepositoryBase(LPH.Infrastructure.Data.LPHDBContext context)
         {
             _context = context;
             _entities = _context.Set<TEntity>();
@@ -80,12 +80,12 @@ namespace LPH.Infrastucture.Repositories
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression)
         {
-            return _entities.FirstOrDefault(expression);
+            return _entities.AsNoTracking().FirstOrDefault(expression);
         }
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression, params string[] includes)
         {
-            var query = _entities.AsQueryable();
+            var query = _entities.AsNoTracking().AsQueryable();
 
             foreach (var include in includes)
                 query = query.Include(include);
@@ -99,7 +99,7 @@ namespace LPH.Infrastucture.Repositories
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.FirstOrDefaultAsync(expression);
+            return await _entities.AsNoTracking().FirstOrDefaultAsync(expression);
         }
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression, params string[] includes)
@@ -109,7 +109,7 @@ namespace LPH.Infrastucture.Repositories
             foreach (var include in includes)
                 query = query.Include(include);
 
-            var result = await query.Where(expression).FirstOrDefaultAsync();
+            var result = await query.AsNoTracking().Where(expression).FirstOrDefaultAsync();
 
             return result;
         }
@@ -123,35 +123,35 @@ namespace LPH.Infrastucture.Repositories
                 query = include(query);
             }
 
-            var result = await query.Where(expression).FirstOrDefaultAsync();
+            var result = await query.AsNoTracking().Where(expression).FirstOrDefaultAsync();
 
             return result;
         }
 
         public ICollection<TEntity> FindMany(Expression<Func<TEntity, bool>> expression)
         {
-            return _entities.Where(expression).ToList();
+            return _entities.AsNoTracking().Where(expression).ToList();
         }
 
 
         public async Task<ICollection<TEntity>> FindManyAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.Where(expression).ToListAsync();
+            return await _entities.AsNoTracking().Where(expression).ToListAsync();
         }
 
         public ICollection<TEntity> GetAll()
         {
-            return _entities.ToList();
+            return _entities.AsNoTracking().ToList();
         }
 
         public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            return await _entities.ToListAsync();
+            return await _entities.AsNoTracking().ToListAsync();
         }
 
         public async Task<ICollection<TResult>> GetAllAsync<TResult>(Expression<Func<TEntity, TResult>> selector)
         {
-            var result = await _entities.Select(selector).ToListAsync();
+            var result = await _entities.AsNoTracking().Select(selector).ToListAsync();
             return result;
         }
 
@@ -164,7 +164,9 @@ namespace LPH.Infrastucture.Repositories
 
         public async Task<TEntity> UpdateAsync(TEntity entity)
         {
-            _entities.Update(entity);
+
+            _context.Entry(entity).State = EntityState.Modified;
+           // _entities.Update(entity);
             await _context.SaveChangesAsync();
             return await Task.FromResult(entity);
         }

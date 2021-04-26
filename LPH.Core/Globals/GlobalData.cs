@@ -14,7 +14,7 @@ namespace LPH.Core.Globals
 
         public  UserLogin CurrentLogin { get; set; }
 
-        public  User CurrentUser { get; set; }
+        public  Usuario CurrentUser { get; set; }
 
         public string CurrentUserImagePath { get; set; }
 

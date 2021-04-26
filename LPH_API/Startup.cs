@@ -1,8 +1,8 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,9 +23,10 @@ using MySql.Data.EntityFrameworkCore;
 using LPH.Infrastructure.Options;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore.Proxies;
+using Microsoft.AspNetCore.Authorization;
+using LPH.Api.Controllers;
 
-
-namespace LPH_API
+namespace LPH.Api
 {
     public class Startup
     {
@@ -40,7 +41,7 @@ namespace LPH_API
         public void ConfigureServices(IServiceCollection services)
         {
 
-
+            
 
 
             services.AddControllers(option => option.Filters.Add<GlobalExceptionFilter>()).AddNewtonsoftJson(options => {
@@ -48,59 +49,30 @@ namespace LPH_API
 
             });
 
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("ownerOrAdmin", policy =>
+            //        policy.Requirements.Add(new PropertyOrAdministerRequirement()));
+            //});
+
+
             //configuramos la injeccion encargada de mappear entidades.
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            //  services.AddDbContext<LPHDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("LPHDB")));
-
-            services.AddDbContext<LPHDBContext>(options => { options.UseMySQL(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); });
-
-            //Agregamos y configuramos la base de datos.
-
-            //configuramos la contraseña opcion
+            services.AddDbContext<LPHDBContext>(options => { options.UseSqlServer(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); }) ;
 
             services.Configure<PasswordOptions>(conf => Configuration.GetSection("PasswordOptions").Bind(conf));
 
             #region Entidades de dominio
-
+                     
+            services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
             services.AddScoped(typeof(IService<>), typeof(BaseService<>));
-            //services.AddTransient<IRepository<Address>, RepositoryBase<Address, LPHDBContext>>();
-            //services.AddTransient<IRepository<User>, RepositoryBase<User, LPHDBContext>>();
-            //services.AddTransient<IRepository<Catalog>, RepositoryBase<Catalog, LPHDBContext>>();
-            //services.AddTransient<IRepository<Customer>, RepositoryBase<Customer, LPHDBContext>>();
-            //services.AddTransient<IRepository<Order>, RepositoryBase<Order, LPHDBContext>>();
-            //services.AddTransient<IRepository<Picture>, RepositoryBase<Picture, LPHDBContext>>();
-            //services.AddTransient<IRepository<Product>, RepositoryBase<Product, LPHDBContext>>();
-            //services.AddTransient<IRepository<Tool>, RepositoryBase<Tool, LPHDBContext>>();
-            //services.AddTransient<IRepository<UsersPictures>, RepositoryBase<UsersPictures, LPHDBContext>>();
+            services.AddTransient(typeof(ISecurityRepositor),typeof(SecurityRepository));
             services.AddTransient<ISecurityService, SecurityServices>();
             services.AddSingleton<IPasswordService, PasswordService>();
-
-
+           // services.AddScoped<IAuthorizationHandler, PropertyOrAdministerAuthorizationHandler>();
+          
             #endregion
-
-            #region BotImplementation
-
-            //services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-
-            //// Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-            //services.AddTransient<IBot, PrinBo>();
-            #endregion
-
-            services.AddScoped(typeof(IService<>), typeof(BaseService<>));
-
-            //services.AddTransient<IService<Address>, BaseService<Address>>();
-            //services.AddTransient<IService<User>, BaseService<User>>();
-            //services.AddTransient<IService<Catalog>, BaseService<Catalog>>();
-            //services.AddTransient<IService<Customer>, BaseService<Customer>>();
-            //services.AddTransient<IService<Order>, BaseService<Order>>();
-            //services.AddTransient<IService<Picture>, BaseService<Picture>>();
-            //services.AddTransient<IService<Product>, BaseService<Product>>();
-            //services.AddTransient<IService<Tool>, BaseService<Tool>>();
-            //services.AddTransient<IService<UsersPictures>, BaseService<UsersPictures>>();
-            services.AddTransient<ISecurityService, SecurityServices>();
-            services.AddSingleton<IPasswordService, PasswordService>();
-
 
             services.AddSwaggerGen(doc =>
             {
@@ -188,8 +160,9 @@ namespace LPH_API
             {
                 using (var context = serviceScope.ServiceProvider.GetService<LPHDBContext>())
                 {
-
-                    context.Database.Migrate();
+                    context.Database.EnsureCreated();
+                   
+                   
                 }
             }
         }

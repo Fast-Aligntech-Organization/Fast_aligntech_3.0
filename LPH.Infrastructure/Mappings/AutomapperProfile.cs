@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using LPH.Core.DTOs;
+using LPH.Core.Entities;
 
 namespace LPH.Infrastructure.Mappings
 {
@@ -12,7 +14,7 @@ namespace LPH.Infrastructure.Mappings
         {
             AddProfileEntityToDto("LPH.Core.Entities", "LPH.Core.DTOs", "Dto");
             AddProfileDtoToEntity("LPH.Core.Entities", "LPH.Core.DTOs", "Dto");
-
+            CreateMap<UsuarioSignUp, Usuario>();
 
         }
 

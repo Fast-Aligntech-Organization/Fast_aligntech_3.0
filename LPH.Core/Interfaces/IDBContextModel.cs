@@ -6,8 +6,8 @@ namespace LPH.Core.Interfaces
     public interface IDBContextModel
     {
         
-        DbSet<User> Users { get; set; }
-        DbSet<MuralOrder> MuralsOrder { get; set; }
+        DbSet<Usuario> Users { get; set; }
+        DbSet<Orden> MuralsOrder { get; set; }
         
 
 

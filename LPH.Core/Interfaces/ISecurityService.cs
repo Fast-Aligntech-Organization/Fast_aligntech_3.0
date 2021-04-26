@@ -8,7 +8,7 @@ namespace LPH.Core.Interfaces
 {
     public interface ISecurityService
     {
-        Task<User> GetLoginByCredentials(UserLogin userLogin);
-        Task RegisterUser(User security);
+        Task<Usuario> GetLoginByCredentials(UserLogin userLogin);
+        Task RegisterUser(Usuario security);
     }
 }

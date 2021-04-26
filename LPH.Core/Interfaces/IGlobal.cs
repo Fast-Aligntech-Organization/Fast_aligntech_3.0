@@ -11,7 +11,7 @@ namespace LPH.Core.Interfaces
 
         UserLogin CurrentLogin { get; set; }
 
-        User CurrentUser { get; set; }
+        Usuario CurrentUser { get; set; }
 
         string CurrentUserImagePath { get; set; }
 

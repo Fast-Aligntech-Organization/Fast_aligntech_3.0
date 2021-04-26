@@ -10,16 +10,19 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
-
+using System.Security.Claims;
+using LPH.Core.Enumerations;
+using System;
 
 namespace LPH.Api.Controllers
 {
-    /// <summary>
+    /// <summary> 
     /// Clase generica base que contiene toda la logica de interaccion de las entidades del negocio de la API LPH.
     /// Su implementacion con un tipo concreto debe ser establecidad para su correcto funcionamiento.
     /// </summary>
-    /// <typeparam name="TEntity">Entidad de negocio, esta debe ser una clase y poder ser instanciada, ademas implementar la interfaz <see cref="IEntity"/>.</typeparam>
-    [Authorize]
+    /// <typeparam Nombre="TEntity">Entidad de negocio, esta debe ser una clase y poder ser instanciada, ademas implementar la interfaz <see cref="IEntity"/>.</typeparam>
+    [Authorize(Roles = "Administrador")]
+   
     [ApiController]
     public class GenericController<TEntity> : ControllerBase, IController<TEntity> where TEntity : class,IEntity, new()
     {
@@ -31,8 +34,8 @@ namespace LPH.Api.Controllers
         /// <summary>
         /// Clase generica base que contiene toda la logica de interaccion de las entidades del negocio de la API LPH.
         /// </summary>
-        /// <param name="Repository">Contiene la logica y conexion a la base de datos</param>
-        /// <param name="service">Contiene servicios para la comprobacion de las correctas especificaciones y restricciones delas entidades</param>
+        /// <param Nombre="Repository">Contiene la logica y conexion a la base de datos</param>
+        /// <param Nombre="service">Contiene servicios para la comprobacion de las correctas especificaciones y restricciones delas entidades</param>
         public GenericController(IRepository<TEntity> Repository, IService<TEntity> service, IWebHostEnvironment enviroment)
         {
             _Repository = Repository;
@@ -46,40 +49,76 @@ namespace LPH.Api.Controllers
         /// Obtiene toda la informacion solicitada a la API de una entidad en concreto.
         /// </summary>
         /// <returns></returns>
+        [Authorize]
         [HttpGet]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(ApiResponse))]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get()
         {
+           
 
-            var result = await _Repository.GetAllAsync();
-            var lis = result.ToList();
-            var response = new ApiResponse(lis);
+            try
+            {
+                var result = await _Repository.GetAllAsync();
+                var lis = result.ToList();
+                var response = new ApiResponse(lis);
 
-            return Ok(response);
+                return Ok(response);
+            }
+            catch (System.Exception err)
+            {
+
+                if (err.InnerException != null)
+                {
+                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                }
+                else
+                {
+                     return BadRequest($"Error: {err.Message} ");
+                }
+            }
+            
+          
         }
 
         /// <summary>
         /// Obtiene la informacion de una entidad por su Id.
         /// </summary>
-        /// <param name="id">Numero unico de identificacion para cada Entidad.</param>
+        /// <param Nombre="id">Numero unico de identificacion para cada Entidad.</param>
         /// <returns></returns>
         [HttpGet("{id}")]
+       
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(ApiResponse))]
+        [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+        [ProducesResponseType(statusCode:StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get(int id)
         {
 
-
-
-            var result = await _Repository.FindAsync(t => t.Id == id);
-            if (_service.ExecuteAllValidator(result, Core.Enumerations.Operation.GetId))
+            try
             {
-                var response = new ApiResponse(result);
+                var result = await _Repository.FindAsync(t => t.Id == id);
+
+                if (_service.ExecuteAllValidator(result, Core.Enumerations.Operation.GetId))
+                {
+                    var response = new ApiResponse(result);
 
 
-                return Ok(response);
+                    return Ok(response);
+                }
+                else
+                {
+
+                     return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+
+                }
             }
-            else
+            catch (System.Exception err)
             {
-                throw new BusisnessException($"Ningun usuario con el Id : {id}") { Details = _service.Disapprobed, Status = (int)HttpStatusCode.NotFound };
+
+                return BadRequest(err);
             }
+
+          
 
 
 
@@ -88,46 +127,71 @@ namespace LPH.Api.Controllers
         /// <summary>
         /// Agrega una entidad nueva a la coleccion correspondiente.
         /// </summary>
-        /// <param name="entity">Entidad a agregar</param>
+        /// <param Nombre="entity">Entidad a agregar</param>
         /// <returns></returns>
         [HttpPost]
+        [ProducesResponseType(statusCode: StatusCodes.Status201Created, type: typeof(ApiResponse))]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Post(TEntity entity)
         {
-            if (_service.ExecuteAllValidator(entity, Core.Enumerations.Operation.Post))
+            try
             {
-               var result = await _Repository.CreateAsync(entity);
-                var response = new ApiResponse(result);
+               
+                    var result = await _Repository.CreateAsync(entity);
+                    var response = new ApiResponse(result);
 
-                _service.ClearResults();
-                return Ok(response);
+                    _service.ClearResults();
+                    return Ok(response);
+                
             }
-            else
+           
+            catch(System.Exception err)
             {
-                throw new BusisnessException() { Details = _service.Disapprobed, Status = (int)HttpStatusCode.BadRequest };
+                return  BadRequest(err.InnerException.Message);
             }
-
+           
         }
 
         /// <summary>
         /// Elimina una entidad por su Id.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param Nombre="id"></param>
         /// <returns>Devuelbe el resultado de la operacion solicitada.</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(ApiResponse))]
+        [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Delete(int id)
         {
-            var result = await _Repository.FindAsync(t => t.Id == id);
-            if (_service.ExecuteAllValidator(result, Core.Enumerations.Operation.Delete))
+            try
             {
+
+                var result = await _Repository.FindAsync(t => t.Id == id);
+
+                if (result == null)
+                {
+                     return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+                }
+
                 await _Repository.DeleteAsync(result);
                 var response = new ApiResponse(true);
 
-            return Ok(response);
+                return Ok(response);
             }
-            else
+            catch (System.Exception err)
             {
-                throw new BusisnessException() { Details = _service.Disapprobed, Status = (int)HttpStatusCode.BadRequest };
+
+
+                if (err.InnerException != null)
+                {
+                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                }
+                else
+                {
+                     return BadRequest($"Error: {err.Message} ");
+                }
             }
+            
 
 
         }
@@ -135,31 +199,81 @@ namespace LPH.Api.Controllers
         /// <summary>
         /// Actualiza una entidad existente.
         /// </summary>
-        /// <param name="entity">Entidad a actualizar</param>
+        /// <param Nombre="entity">Entidad a actualizar</param>
         /// <returns></returns>
         [HttpPut]
+        
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK,type:typeof(ApiResponse))]
+        [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Put(TEntity entity)
         {
 
-            if (_service.ExecuteAllValidator(entity, Core.Enumerations.Operation.Put))
+
+            try
             {
+
+
                 var result = await _Repository.UpdateAsync(entity);
-            var response = new ApiResponse(result);
-            return Ok(response);
+                if (result == null)
+                {
+                     return NotFound($"{typeof(TEntity).Name} con el Id: {entity.Id} no existe ");
+                }
+                var response = new ApiResponse(result);
+                return Ok(response);
             }
-            else
+            catch (System.Exception err)
             {
-                throw new BusisnessException() { Details = _service.Disapprobed, Status = (int)HttpStatusCode.BadRequest };
+
+
+                if (err.InnerException != null)
+                {
+                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                }
+                else
+                {
+                     return BadRequest($"Error: {err.Message} ");
+                }
             }
+               
+
+           
         }
 
+
+        // internal bool IsSameUser(int id,bool administerImport = true)
+        //{
+        //     var sid = HttpContext.User.FindFirst(c => c.Type == ClaimTypes.Sid);
+
+           
+
+        //    if (administerImport)
+        //    {
+        //        var role = HttpContext.User.FindFirst(c => c.Type == ClaimTypes.Role);
+
+        //        if (role.Value == Enum.GetName<RoleType>(RoleType.Administrator))
+        //        {
+        //            return true;
+        //        }
+
+        //    }
+
+        //    if (sid == null)
+        //    {
+                
+        //    }
+
+        //}
+       
         //[NonAction]
         //public string SaveFile(IFormFile file, string path)
         //{
-        //    string name = Path.GetRandomFileName();
+        //    string Nombre = Path.GetRandomFileNombre();
 
 
         //}
+
+
 
 
     }

@@ -17,12 +17,12 @@ namespace LPH.Core.Services
             _repository = unitOfWork;
         }
 
-        public async Task<User> GetLoginByCredentials(UserLogin userLogin)
+        public async Task<Usuario> GetLoginByCredentials(UserLogin userLogin)
         {
             return await _repository.GetLoginByCredentials(userLogin);
         }
 
-        public async Task RegisterUser(User security)
+        public async Task RegisterUser(Usuario security)
         {
             await _repository.RegisterUser(security);
         }

@@ -10,8 +10,8 @@ namespace LPH.Core.Exceptions
         public BusisnessException(string message) : base(message) { }
         public BusisnessException(string message, Exception inner) : base(message, inner) { }
         protected BusisnessException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+        System.Runtime.Serialization.SerializationInfo info,
+        System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         public object Details { get; set; }
 
