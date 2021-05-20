@@ -81,12 +81,12 @@ namespace LPH.Infrastructure.Repositories
         public TEntity Find(Expression<Func<TEntity, bool>> expression)
         {
 
-            return _entities.AsNoTracking().FirstOrDefault(expression);
+            return _entities.FirstOrDefault(expression);
         }
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression, params string[] includes)
         {
-            var query = _entities.AsNoTracking().AsQueryable();
+            var query = _entities.AsQueryable();
 
             foreach (var include in includes)
             {
@@ -114,7 +114,7 @@ namespace LPH.Infrastructure.Repositories
                 query = query.Include(include);
             }
 
-            var result = await query.AsNoTracking().Where(expression).FirstOrDefaultAsync();
+            var result = await query.Where(expression).FirstOrDefaultAsync();
 
             return result;
         }
@@ -128,35 +128,35 @@ namespace LPH.Infrastructure.Repositories
                 query = include(query);
             }
 
-            var result = await query.AsNoTracking().Where(expression).FirstOrDefaultAsync();
+            var result = await query.Where(expression).FirstOrDefaultAsync();
 
             return result;
         }
 
         public ICollection<TEntity> FindMany(Expression<Func<TEntity, bool>> expression)
         {
-            return _entities.AsNoTracking().Where(expression).ToList();
+            return _entities.Where(expression).ToList();
         }
 
 
         public async Task<ICollection<TEntity>> FindManyAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.AsNoTracking().Where(expression).ToListAsync();
+            return await _entities.Where(expression).ToListAsync();
         }
 
         public ICollection<TEntity> GetAll()
         {
-            return _entities.AsNoTracking().ToList();
+            return _entities.ToList();
         }
 
         public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            return await _entities.AsNoTracking().ToListAsync();
+            return await _entities.ToListAsync();
         }
 
         public async Task<ICollection<TResult>> GetAllAsync<TResult>(Expression<Func<TEntity, TResult>> selector)
         {
-            var result = await _entities.AsNoTracking().Select(selector).ToListAsync();
+            var result = await _entities.Select(selector).ToListAsync();
             return result;
         }
 
