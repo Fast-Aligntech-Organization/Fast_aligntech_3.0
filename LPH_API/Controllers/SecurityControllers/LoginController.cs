@@ -1,17 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using LPH.Core.DTOs;
+using LPH.Core.Entities;
+using LPH.Core.Enumerations;
+using LPH.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using LPH.Core.Entities;
-using LPH.Core.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using LPH.Core.DTOs;
-using Microsoft.AspNetCore.Http;
-using LPH.Core.Enumerations;
 
 namespace LPH.Api.Controllers
 {
@@ -40,7 +40,7 @@ namespace LPH.Api.Controllers
         /// <param name="login"></param>
         /// <returns></returns>
         [HttpPost]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK,type: typeof(string))]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(Token))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
@@ -54,7 +54,7 @@ namespace LPH.Api.Controllers
 
                 if (user == null)
                 {
-                    return NotFound($"No existe el usuario con el correo {login.Email}!");
+                    return NotFound(new { message = $"No existe el usuario con el correo {login.Email}!" });
                 }
 
                 var validation = _passwordService.Check(user.Password, login.Contraseña);
@@ -65,16 +65,17 @@ namespace LPH.Api.Controllers
 
                 if (validation)
                 {
+                    var token = new Token();
 
-                   
-                    var token = GenerateToken(user);
-                    
+                    token.JWTToken = GenerateToken(user);
+                    token.Usuario = _mapper.Map<UsuarioDto>(user);
+
 
                     return Ok(token);
                 }
                 else
                 {
-                    return Unauthorized("La contraseña proporcionada es incorrecta");
+                    return Unauthorized(new { message = "La contraseña proporcionada es incorrecta" });
                 }
             }
             catch (Exception err)
@@ -83,23 +84,24 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
 
-                   
+                    return BadRequest(new { message = new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" } });
+
+
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
 
-                    
+
                 }
-               
+
             }
 
-            
+
         }
 
-       
+
 
         private string GenerateToken(Usuario user)
         {
@@ -116,7 +118,7 @@ namespace LPH.Api.Controllers
                 new Claim(ClaimTypes.Sid, user.Id.ToString()),
                 new Claim(ClaimTypes.Role,Enum.GetName(typeof(RoleType),user.Role)),
                 new Claim("expire", DateTime.Now.AddDays(1).ToString())
-               
+
             };
 
             //Payload
@@ -127,11 +129,19 @@ namespace LPH.Api.Controllers
                 claims,
                 DateTime.Now,
                 DateTime.UtcNow.AddDays(1)
-            ) ;
+            );
 
             var token = new JwtSecurityToken(header, payload);
-             
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+    }
+
+
+    public class Token
+    {
+        public string JWTToken { get; set; }
+
+        public UsuarioDto Usuario { get; set; }
     }
 }

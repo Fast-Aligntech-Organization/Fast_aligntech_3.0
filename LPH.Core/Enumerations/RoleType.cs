@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Enumerations
+﻿namespace LPH.Core.Enumerations
 {
     public enum RoleType
     {
-   
-            Administrator,
-            User,
-            Programmer
 
-  
+        Administrator,
+        User,
+        Programmer
 
 
-}
+
+
+    }
 }

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
+using LPH.Core.DTOs;
+using LPH.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using LPH.Core.DTOs;
-using LPH.Core.Entities;
 
 namespace LPH.Infrastructure.Mappings
 {

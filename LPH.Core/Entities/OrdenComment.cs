@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LPH.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using LPH.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
 namespace LPH.Core.Entities
 {
     [Table("comentarios")]
     [Index(nameof(Id), IsUnique = true)]
-    public class OrdenComment:IEntity
+    public class OrdenComment : IEntity
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -21,7 +19,7 @@ namespace LPH.Core.Entities
         public float Calificacion { get; set; }
         [StringLength(512)]
         public string Comentario { get; set; }
-    
+
         public virtual Orden IdOrdenNavigation { get; set; }
 
         public virtual Usuario IdUserNavigation { get; set; }

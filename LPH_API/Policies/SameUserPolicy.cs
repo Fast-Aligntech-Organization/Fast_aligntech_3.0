@@ -1,14 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LPH.Core.Interfaces;
-using LPH.Infrastructure.Repositories;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System;
+using System.Security.Claims;
 
 
 namespace LPH.Api.Controllers
@@ -23,7 +17,7 @@ namespace LPH.Api.Controllers
 
             if (!controller.User.HasClaim(c => c.Type == ClaimTypes.Sid))
             {
-                 context.Result = new JsonResult(new
+                context.Result = new JsonResult(new
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
                     Value = "Token invalido"
@@ -32,7 +26,7 @@ namespace LPH.Api.Controllers
                 return;
             }
 
-           var claim =  controller.User.FindFirst(ClaimTypes.Sid);
+            var claim = controller.User.FindFirst(ClaimTypes.Sid);
 
             if (claim == null)
             {
@@ -46,7 +40,7 @@ namespace LPH.Api.Controllers
             }
 
             object id;
-          bool Existid = controller.Request.RouteValues.TryGetValue("id",out id);
+            bool Existid = controller.Request.RouteValues.TryGetValue("id", out id);
 
             if (id == null)
             {
@@ -54,14 +48,14 @@ namespace LPH.Api.Controllers
                 {
                     StatusCode = StatusCodes.Status404NotFound,
                     Value = "No se a proporcionado un Id valido"
-                
+
                 });
                 return;
             }
 
             if ((int)id != Convert.ToInt32(claim.Value))
             {
-             
+
                 context.Result = new JsonResult(new
                 {
                     StatusCode = StatusCodes.Status401Unauthorized,
@@ -70,14 +64,14 @@ namespace LPH.Api.Controllers
                 });
                 return;
             }
-            
+
 
 
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-           
+
         }
     }
 }

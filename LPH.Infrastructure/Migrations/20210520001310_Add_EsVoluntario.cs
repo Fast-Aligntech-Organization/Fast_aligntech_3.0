@@ -2,22 +2,22 @@
 
 namespace LPH.Infrastructure.Migrations
 {
-    public partial class AgregarRoles : Migration
+    public partial class Add_EsVoluntario : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Role",
+            migrationBuilder.AddColumn<bool>(
+                name: "EsVoluntario",
                 table: "usuarios",
-                type: "int",
+                type: "boolean",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: false);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Role",
+                name: "EsVoluntario",
                 table: "usuarios");
         }
     }

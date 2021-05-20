@@ -1,18 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using LPH.Api.Filters;
+using LPH.Core.DTOs;
+using LPH.Core.Entities;
+using LPH.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LPH.Api.Controllers;
-using LPH.Core.Entities;
-using LPH.Core.DTOs;
-using LPH.Core.Interfaces;
-using AutoMapper;
-using LPH.Api.Responses;
-using Microsoft.AspNetCore.Authorization;
-using LPH.Api.Filters;
-using LPH.Infrastructure.Repositories;
 
 namespace LPH.Api.Controllers
 {
@@ -31,7 +28,7 @@ namespace LPH.Api.Controllers
         public UsersController(IRepository<Usuario> Repository,
                                IMapper mapper,
                                ISecurityService securityService,
-                               IPasswordService passwordService, IAuthorizationService authorizationService) : base(Repository, mapper,authorizationService)
+                               IPasswordService passwordService, IAuthorizationService authorizationService) : base(Repository, mapper, authorizationService)
         {
             _securityService = securityService;
             _passwordService = passwordService;
@@ -47,9 +44,9 @@ namespace LPH.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-       
+
         [HttpGet]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK,type:typeof(List<UsuarioDto>))]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(List<UsuarioDto>))]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
         public override async Task<IActionResult> Get()
@@ -73,12 +70,64 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
         public override async Task<IActionResult> Get(int id)
         {
-            
 
-           
-                return await base.Get(id);
-            
-            
+
+
+            return await base.Get(id);
+
+
+        }
+
+        /// <summary>
+        /// Obtiene el usuario por el GoogleUUID;
+        /// </summary>
+        /// <returns></returns> 
+        [HttpGet("/byuuid/{uuid}")]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(UsuarioDto))]
+        [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+        public  async Task<IActionResult> GetGoogleUUID(string uuid)
+        {
+
+
+            try
+            {
+                var result = await _Repository.FindAsync(t => t.GoogleUUID.ToString() == uuid);
+
+
+
+                if (result == null)
+                {
+                    return NotFound(new { message = $"{typeof(Usuario).Name} con el UUID: {uuid} no existe " });
+                }
+
+               
+
+
+                var resultMapper = _mapper.Map<UsuarioDto>(result);
+
+                return Ok(resultMapper);
+
+
+
+
+            }
+            catch (System.Exception err)
+            {
+
+
+                if (err.InnerException != null)
+                {
+
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
+                }
+                else
+                {
+                    return BadRequest(new { message = $"Error: {err.Message} " });
+                }
+            }
+
         }
 
 
@@ -88,10 +137,10 @@ namespace LPH.Api.Controllers
         /// obtener acceso a toda la informacion de los usuarios
         /// </summary>
         /// <returns></returns>    
-        [NonAction]
-        public override async Task<IActionResult> Post(UsuarioDto administer)
+       // [NonAction]
+        public override async Task<IActionResult> Post(UsuarioDto entity)
         {
-            return await base.Post(administer);
+            return await base.Post(entity);
         }
 
         /// <summary>
@@ -104,14 +153,34 @@ namespace LPH.Api.Controllers
         /// <returns></returns>
         [Authorize]
         [OwnerUser]
-        [HttpPut()] 
+        [HttpPut()]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(UsuarioDto))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public override async Task<IActionResult> Put(UsuarioDto entity)
         {
 
-          return  await base.Put(entity);
+            var result = await _Repository.FindAsync(e => e.Id == entity.Id);
+
+            if (result == null)
+            {
+                return await base.Put(entity);
+            }
+            else
+            {
+                if (result.Role == Core.Enumerations.RoleType.Administrator || result.Role == Core.Enumerations.RoleType.Programmer)
+                {
+                    return await base.Put(entity);
+                }
+                else
+                {
+                    entity.Role = Core.Enumerations.RoleType.User;
+                    return await base.Put(entity);
+                }
+            }
+
+
+           
         }
 
         /// <summary>
@@ -142,8 +211,8 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-        
-        public async Task<IActionResult> ChangePassword(int id,UserChangePassword password)
+
+        public async Task<IActionResult> ChangePassword(int id, UserChangePassword password)
         {
 
             try
@@ -151,12 +220,12 @@ namespace LPH.Api.Controllers
                 var result = await _Repository.FindAsync(t => t.Id == id);
                 if (result == null)
                 {
-                    return NotFound($"{typeof(Usuario).Name} con el Id: {id} no existe ");
+                    return NotFound(new { message = $"{typeof(Usuario).Name} con el Id: {id} no existe " });
                 }
 
                 if (!_passwordService.Check(result.Password, password.OldPassword))
                 {
-                    return Unauthorized("Contraseña incorrecta");
+                    return Unauthorized(new { message = "Contraseña incorrecta!" });
                 }
 
                 string PHashNew = _passwordService.Hash(password.NewPassword);
@@ -164,9 +233,9 @@ namespace LPH.Api.Controllers
                 result.Password = PHashNew;
 
                 _Repository.Update(result);
-               
 
-                return Ok("Contraseña Actualizada!");
+
+                return Ok(new { message = "Contraseña Actualizada!" });
 
 
             }
@@ -176,11 +245,11 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                    return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                    return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
 
@@ -194,8 +263,8 @@ namespace LPH.Api.Controllers
         /// </summary>
         /// <param name="id">Id del usuario</param>
         /// <returns>La lista de comentarios y su calificacion</returns>
-        [HttpGet,Route("{id}/comments")]
-        [TypeFilter(typeof(SameUserFilter))]//Verificamos que sea el mismo usuario
+        [HttpGet, Route("{id}/comments")]
+        [OwnerUser]//Verificamos que sea el mismo usuario
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(List<OrdenCommentDto>))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
@@ -208,12 +277,12 @@ namespace LPH.Api.Controllers
 
                 if (result == null)
                 {
-                    return NotFound($"El usuario con el Id: {id} no existe");
+                    return NotFound(new { message = $"El usuario con el Id: {id} no existe" });
                 }
 
                 var orderslist = _mapper.Map<IList<OrdenCommentDto>>(result.Comments.ToList());
 
-               
+
 
 
 
@@ -225,11 +294,11 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
 
@@ -241,7 +310,7 @@ namespace LPH.Api.Controllers
         /// </summary>
         /// <param name="id">Id del usuario</param>
         /// <returns>Una lista de ordenes</returns>
-        [HttpGet,Route("{id}/orders")]
+        [HttpGet, Route("{id}/orders")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(List<OrdenDto>))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
@@ -253,12 +322,12 @@ namespace LPH.Api.Controllers
 
                 if (result == null)
                 {
-                    return NotFound($"El usuario con el Id: {id} no existe");
+                    return NotFound(new { message = $"El usuario con el Id: {id} no existe" });
                 }
 
                 var orderslist = _mapper.Map<IList<OrdenDto>>(result.Ordenes.ToList());
 
-               
+
 
                 return Ok(orderslist);
 
@@ -269,11 +338,11 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
         }

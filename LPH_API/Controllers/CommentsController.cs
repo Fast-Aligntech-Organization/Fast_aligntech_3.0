@@ -1,16 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LPH.Core.Entities;
-using LPH.Core.DTOs;
-using LPH.Core.Interfaces;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using LPH.Core.DTOs;
+﻿using AutoMapper;
 using LPH.Api.Filters;
+using LPH.Core.DTOs;
+using LPH.Core.Entities;
+using LPH.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LPH.Api.Controllers
 {
@@ -28,7 +25,7 @@ namespace LPH.Api.Controllers
         /// No requiere permisos especiales
         /// </summary>
         /// <returns></returns>
-       
+
         [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(List<OrdenCommentDto>))]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
@@ -42,8 +39,8 @@ namespace LPH.Api.Controllers
         /// No requiere permisos especiales
         /// </summary>
         /// <returns></returns> 
-       
-        
+
+
         [HttpGet("{id}")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(OrdenCommentDto))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -109,7 +106,7 @@ namespace LPH.Api.Controllers
             return await base.Delete(id);
         }
 
-      
+
 
 
 

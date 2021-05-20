@@ -1,30 +1,28 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using LPH.Core.Interfaces;
+using LPH.Core.Services;
+using LPH.Infrastructure.Data;
+using LPH.Infrastructure.Filters;
+using LPH.Infrastructure.Options;
+using LPH.Infrastructure.Repositories;
+using LPH.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using LPH.Core.Entities;
-using LPH.Core.Interfaces;
-using LPH.Infrastructure.Data;
-using LPH.Infrastructure.Filters;
-using LPH.Infrastructure.Repositories;
-using LPH.Infrastructure.Services;
 using System;
 using System.IO;
 using System.Reflection;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using LPH.Core.Services;
-using MySql.Data.EntityFrameworkCore;
-using LPH.Infrastructure.Options;
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore.Proxies;
-using Microsoft.AspNetCore.Authorization;
-using LPH.Api.Controllers;
+
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using LPH.Core.Entities;
 
 namespace LPH.Api
 {
@@ -37,41 +35,40 @@ namespace LPH.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
 
-            
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                 builder
+                 .AllowAnyOrigin()
+                 .AllowAnyMethod()
+                 .AllowAnyHeader());
+            });
 
-
-            services.AddControllers(option => option.Filters.Add<GlobalExceptionFilter>()).AddNewtonsoftJson(options => {
+            services.AddControllers(option => option.Filters.Add<GlobalExceptionFilter>()).AddNewtonsoftJson(options =>
+            {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 
             });
 
-            //services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy("ownerOrAdmin", policy =>
-            //        policy.Requirements.Add(new PropertyOrAdministerRequirement()));
-            //});
-
-
-            //configuramos la injeccion encargada de mappear entidades.
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddDbContext<LPHDBContext>(options => { options.UseSqlServer(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); }) ;
+            services.AddDbContext<LPHDBContext>(options => { options.UseNpgsql(Configuration.GetConnectionString("LPHDB_postgres")); options.UseLazyLoadingProxies(); options.EnableDetailedErrors(); }) ;
+          //services.AddDbContext<LPHDBContext>(options => { options.UseSqlServer(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); });
 
             services.Configure<PasswordOptions>(conf => Configuration.GetSection("PasswordOptions").Bind(conf));
 
             #region Entidades de dominio
-                     
+
             services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
             services.AddScoped(typeof(IService<>), typeof(BaseService<>));
-            services.AddTransient(typeof(ISecurityRepositor),typeof(SecurityRepository));
+            services.AddTransient(typeof(ISecurityRepositor), typeof(SecurityRepository));
             services.AddTransient<ISecurityService, SecurityServices>();
             services.AddSingleton<IPasswordService, PasswordService>();
-           // services.AddScoped<IAuthorizationHandler, PropertyOrAdministerAuthorizationHandler>();
-          
+
+
             #endregion
 
             services.AddSwaggerGen(doc =>
@@ -81,6 +78,7 @@ namespace LPH.Api
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 doc.IncludeXmlComments(xmlPath);
             });
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -104,67 +102,116 @@ namespace LPH.Api
 
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UpdateDatabase();
+                app.AddAdminister();
             }
 
+            app.UseStaticFiles();
 
-            UpdateDatabase(app);
-            app.UseCors();
             app.UseHttpsRedirection();
+
+           
+
             app.UseSwagger();
+
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "LPH API Documentation");
 
 
             });
+
             app.UseRouting();
 
+            app.UseCors();
+
             app.UseAuthentication();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-        }
 
-        public string Hash(string password)
-        {
-
-
-            //PBKDF2 implementation
-            using (var algorithm = new Rfc2898DeriveBytes(
-                password,
-                16,
-                1000
-                ))
+            app.Run(async context =>
             {
-                var key = Convert.ToBase64String(algorithm.GetBytes(32));
-                var salt = Convert.ToBase64String(algorithm.Salt);
-
-                return $"{1000}.{salt}.{key}";
-            }
+                context.Response.Redirect("swagger");
+            });
         }
 
-        private static void UpdateDatabase(IApplicationBuilder app)
+      
+    }
+
+    public static class StartupExtencions
+    {
+        public static IApplicationBuilder UpdateDatabase(this IApplicationBuilder app)
         {
             using (var serviceScope = app.ApplicationServices
-                .GetRequiredService<IServiceScopeFactory>()
+               .GetRequiredService<IServiceScopeFactory>()
                 .CreateScope())
             {
                 using (var context = serviceScope.ServiceProvider.GetService<LPHDBContext>())
                 {
-                    context.Database.EnsureCreated();
-                   
-                   
+
+                    //var result = context.Database.CanConnect();
+
+                    //var createscrip = context.Database.GenerateCreateScript();
+
+                    context.Database.Migrate();
+
+
                 }
+
+
             }
+
+            return app;
+        }
+
+        public static IApplicationBuilder AddAdminister(this IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices
+               .GetRequiredService<IServiceScopeFactory>()
+                .CreateScope())
+            {
+                using (var context = serviceScope.ServiceProvider.GetService<LPHDBContext>())
+                {
+
+                    var password = serviceScope.ServiceProvider.GetService<IPasswordService>();
+
+                    Usuario administer = new Usuario();
+
+                    administer.Email = @"lph_api@outlook.com";
+                    administer.Telefono = "6562538679";
+                    administer.Nombre = "lphadmin";
+                    administer.FechaNacimiento = DateTime.Now;
+                    administer.Apellido = "Principal";
+                    administer.Password = password.Hash("Lph12345");
+                    administer.Role = LPH.Core.Enumerations.RoleType.Administrator;
+                    administer.GoogleUUID = null;
+                    administer.Suscrito = false;
+
+                    if (context.Usuarios.FirstOrDefaultAsync(u => u.Email == administer.Email) == null)
+                    {
+                        context.Usuarios.Add(administer);
+                        context.SaveChanges();
+                    }
+
+                   
+
+                }
+
+
+            }
+
+            return app;
         }
     }
+
 }

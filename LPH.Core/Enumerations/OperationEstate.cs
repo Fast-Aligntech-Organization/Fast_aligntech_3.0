@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Enumerations
+﻿namespace LPH.Core.Enumerations
 {
     /// <summary>
     /// Representa el estado actual de operacion de una maquina 3D
@@ -18,7 +14,7 @@ namespace LPH.Core.Enumerations
         Error
 
 
-        
+
 
 
     }
@@ -29,7 +25,7 @@ namespace LPH.Core.Enumerations
         Clogged,
         InMaintenance,
 
-        
+
 
 
     }

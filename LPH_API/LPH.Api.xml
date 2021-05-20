@@ -152,6 +152,16 @@
             Administra toda la logica de las ordenes
             </summary>
         </member>
+        <member name="M:LPH.Api.Controllers.OrdersController.UploadImage(System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            [Authorize]
+            Sube una imagen ligada a una orden.
+            solo el usuario puede realizar modificaciones sobre su propia orden
+            </summary>
+            <param name="id"></param>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
         <member name="M:LPH.Api.Controllers.OrdersController.Comments(System.Int32)">
             <summary>
             Devuelve los comentarios por orden
@@ -241,6 +251,12 @@
             Obtiene el usuario por el Id.
             Se requerira Token para acceder a la informacion, Ademas solo un usuario administrador o el propio
             usuario tendra accesso a la informacion
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:LPH.Api.Controllers.UsersController.GetGoogleUUID(System.String)">
+            <summary>
+            Obtiene el usuario por el GoogleUUID;
             </summary>
             <returns></returns> 
         </member>

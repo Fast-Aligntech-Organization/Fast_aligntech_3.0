@@ -1,49 +1,54 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using LPH.Core.DTOs;
-using LPH.Core.Interfaces;
-using LPH.Infrastructure.Repositories;
+﻿using LPH.Core.DTOs;
 using LPH.Core.Entities;
 using LPH.Core.Enumerations;
-using Microsoft.AspNetCore.Authorization;
+using LPH.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System;
+using System.Security.Claims;
 
 namespace LPH.Api.Filters
 {
-    public class OwnerOrAdministerAttribute: ActionFilterAttribute
+    public class OwnerOrAdministerAttribute : ActionFilterAttribute
     {
 
         public Type TypeOfRepository { get; set; }
 
-      
 
 
-       
+
+
 
         public OwnerOrAdministerAttribute(Type typeOfRepository)
         {
             this.TypeOfRepository = typeOfRepository;
-           
+
 
         }
 
-        
 
 
-       
-       
+
+
+
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
 
 
-            var sid  = context.HttpContext.User.FindFirst(ClaimTypes.Sid).Value;
+            var sid = context.HttpContext.User.FindFirst(ClaimTypes.Sid).Value;
             var role = context.HttpContext.User.FindFirst(ClaimTypes.Role).Value;
-            var idencabezado = context.HttpContext.Request.RouteValues["id"].ToString();
+            string idencabezado;
+            try
+            {
+                idencabezado = context.HttpContext.Request.RouteValues["id"].ToString();
+            }
+            catch (NullReferenceException err)
+            {
+
+                idencabezado = null;
+            }
+           
             var _repository = context.HttpContext.RequestServices.GetService(TypeOfRepository);
             var ActionParameter = context.ActionArguments;
 
@@ -53,11 +58,11 @@ namespace LPH.Api.Filters
                 return;
             }
 
-            if (_repository is IRepository<Usuario> )
+            if (_repository is IRepository<Usuario>)
             {
                 var _userRepository = _repository as IRepository<Usuario>;
 
-               
+
 
                 if (!string.IsNullOrEmpty(idencabezado))
                 {
@@ -72,7 +77,7 @@ namespace LPH.Api.Filters
 
                 }
 
-                else if(ActionParameter.Count > 0)
+                else if (ActionParameter.Count > 0)
                 {
 
                     var parameter = context.ActionArguments["entity"] as UsuarioDto;
@@ -81,19 +86,19 @@ namespace LPH.Api.Filters
                     {
                         context.Result = new UnauthorizedObjectResult("");
                     }
-                    
+
 
 
                 }
-               
+
 
 
 
 
 
             }
-          
-            if(_repository is IRepository<Orden>)
+
+            if (_repository is IRepository<Orden>)
             {
                 var _ordenRepository = _repository as IRepository<Orden>;
                 if (!string.IsNullOrEmpty(idencabezado))
@@ -193,12 +198,12 @@ namespace LPH.Api.Filters
         }
 
 
-       
+
 
 
     }
 
-     [System.AttributeUsage(AttributeTargets.Method)]
+    [System.AttributeUsage(AttributeTargets.Method)]
     public class OwnerOrdenAttribute : OwnerOrAdministerAttribute
     {
         public OwnerOrdenAttribute() : base(typeof(IRepository<Orden>))

@@ -1,17 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using LPH.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Linq;
-using System.Text;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using LPH.Core.Interfaces;
+
 
 namespace LPH.Infrastructure.Repositories
 {
-    public class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : class, new()
+    public class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity :  class, IEntity, new()
     {
 
         protected internal readonly DbContext _context;
@@ -80,6 +80,7 @@ namespace LPH.Infrastructure.Repositories
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression)
         {
+
             return _entities.AsNoTracking().FirstOrDefault(expression);
         }
 
@@ -88,7 +89,9 @@ namespace LPH.Infrastructure.Repositories
             var query = _entities.AsNoTracking().AsQueryable();
 
             foreach (var include in includes)
+            {
                 query = query.Include(include);
+            }
 
             return query.FirstOrDefault(expression);
         }
@@ -99,7 +102,7 @@ namespace LPH.Infrastructure.Repositories
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.AsNoTracking().FirstOrDefaultAsync(expression);
+            return await _entities.FirstOrDefaultAsync(expression);
         }
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression, params string[] includes)
@@ -107,7 +110,9 @@ namespace LPH.Infrastructure.Repositories
             var query = _entities.AsQueryable();
 
             foreach (var include in includes)
+            {
                 query = query.Include(include);
+            }
 
             var result = await query.AsNoTracking().Where(expression).FirstOrDefaultAsync();
 
@@ -157,7 +162,7 @@ namespace LPH.Infrastructure.Repositories
 
         public TEntity Update(TEntity entity)
         {
-            _entities.Update(entity);
+            DetachLocal(entity, entity.Id);
             _context.SaveChanges();
             return entity;
         }
@@ -165,10 +170,23 @@ namespace LPH.Infrastructure.Repositories
         public async Task<TEntity> UpdateAsync(TEntity entity)
         {
 
-            _context.Entry(entity).State = EntityState.Modified;
-           // _entities.Update(entity);
+            DetachLocal(entity, entity.Id);
+            // _entities.Update(entity);
             await _context.SaveChangesAsync();
             return await Task.FromResult(entity);
+        }
+
+        public void DetachLocal(TEntity entity,int id)
+        {
+            var detachedEntity = _entities.FirstOrDefault(en => en.Id == id);
+
+            if (detachedEntity != null)
+            {
+                _context.Entry<TEntity>(detachedEntity).State = EntityState.Detached;
+            }
+
+            _context.Entry<TEntity>(entity).State = EntityState.Modified;
+
         }
 
         #region Anulado

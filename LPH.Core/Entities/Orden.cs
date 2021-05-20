@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LPH.Core.Enumerations;
 using LPH.Core.Interfaces;
-using LPH.Core.Enumerations;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using System.IO;
+using System.Linq;
 
 namespace LPH.Core.Entities
 {
     [Table("ordenes")]
-    [Index(nameof(Id),IsUnique = true)]
-    public class Orden: IEntity
+    [Index(nameof(Id), IsUnique = true)]
+    public class Orden : IEntity
     {
         public Orden()
         {
@@ -39,6 +40,24 @@ namespace LPH.Core.Entities
         [Required]
         public Organization Organizacion { get; set; }
 
+        [NotMapped]
+        public string Archivo
+        {
+            get
+            {
+
+                if (Files.Count > 0)
+                {
+                    return Path.Combine(Directory.GetCurrentDirectory(), Files.First().UriString);
+                }
+                else
+                {
+                    return "";
+                }
+
+
+            }
+        }
 
 
         public virtual Usuario IdUserNavigation { get; set; }

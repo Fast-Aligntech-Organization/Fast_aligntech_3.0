@@ -1,7 +1,4 @@
 ﻿using LPH.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LPH.Core.Interfaces
 {
@@ -15,7 +12,7 @@ namespace LPH.Core.Interfaces
 
         string CurrentUserImagePath { get; set; }
 
-        string ApiUri { get; set; } 
+        string ApiUri { get; set; }
 
     }
 }

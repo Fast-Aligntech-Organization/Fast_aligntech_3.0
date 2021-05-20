@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LPH.Core.Entities;
 using LPH.Core.Interfaces;
-using LPH.Core.Entities;
 using LPH.Infrastructure.Data;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LPH.Infrastructure.Repositories
 {

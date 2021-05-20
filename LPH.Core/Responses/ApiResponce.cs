@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Responses
+﻿namespace LPH.Core.Responses
 {
 
     public class ApiResponse<T>

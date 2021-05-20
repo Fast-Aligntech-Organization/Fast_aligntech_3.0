@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using LPH.Core.Entities;
+﻿using LPH.Core.Entities;
 using LPH.Core.Interfaces;
+using System.Threading.Tasks;
 
 
 namespace LPH.Core.Services
 {
-   public class SecurityServices: ISecurityService
+    public class SecurityServices : ISecurityService
     {
         private readonly ISecurityRepositor _repository;
 

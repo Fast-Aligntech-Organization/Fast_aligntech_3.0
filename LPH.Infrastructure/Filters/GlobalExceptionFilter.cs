@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LPH.Core.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using LPH.Core.Exceptions;
 using System;
 using System.Net;
 
@@ -33,7 +33,21 @@ namespace LPH.Infrastructure.Filters
                 context.ExceptionHandled = true;
             }
 
-
+            if (context.Exception is Exception)
+            {
+                if (context.Exception.InnerException != null)
+                {
+                    context.Result = new BadRequestObjectResult(new  { message = $"Error: {context.Exception.Message}\n Inner Error: {context.Exception.InnerException}" });
+                    context.HttpContext.Response.StatusCode = 500;
+                    context.ExceptionHandled = true;
+                }
+                else
+                {
+                   context.Result = new BadRequestObjectResult(new  { message = $"Error: {context.Exception.Message} " });
+                    context.HttpContext.Response.StatusCode = 500;
+                    context.ExceptionHandled = true;
+                }
+            }
 
         }
     }

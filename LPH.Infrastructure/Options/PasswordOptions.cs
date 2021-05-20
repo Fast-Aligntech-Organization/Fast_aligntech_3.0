@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Infrastructure.Options
+﻿namespace LPH.Infrastructure.Options
 {
 
     public class PasswordOptions

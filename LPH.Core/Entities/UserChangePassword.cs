@@ -1,13 +1,8 @@
-﻿using LPH.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Entities
+﻿namespace LPH.Core.Entities
 {
-    public class UserChangePassword 
+    public class UserChangePassword
     {
-       
+
 
         public string OldPassword { get; set; }
 

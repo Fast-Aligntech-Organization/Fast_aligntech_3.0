@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Enumerations
+﻿namespace LPH.Core.Enumerations
 {
-   public enum Organization
+    public enum Organization
     {
         Empresa,
         PersonaFisica,

@@ -1,9 +1,10 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace LPH.Infrastructure.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialCatalog : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,16 +12,18 @@ namespace LPH.Infrastructure.Migrations
                 name: "usuarios",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    FechaNacimiento = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TipoUsuario = table.Column<int>(type: "int", nullable: false),
-                    Suscrito = table.Column<bool>(type: "bit", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Apellido = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Telefono = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    FechaNacimiento = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    TipoUsuario = table.Column<int>(type: "integer", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    Suscrito = table.Column<bool>(type: "boolean", nullable: false),
+                    Password = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    GoogleUUID = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,16 +34,16 @@ namespace LPH.Infrastructure.Migrations
                 name: "ordenes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdUser = table.Column<int>(type: "int", nullable: false),
-                    Ancho = table.Column<double>(type: "float", nullable: false),
-                    Alto = table.Column<double>(type: "float", nullable: false),
-                    MaterialBarda = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
-                    Localizacion = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
-                    Tematica = table.Column<string>(type: "nvarchar(516)", maxLength: 516, nullable: true),
-                    FechaRealizacionDeseada = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Organizacion = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdUser = table.Column<int>(type: "integer", nullable: false),
+                    Ancho = table.Column<double>(type: "double precision", nullable: false),
+                    Alto = table.Column<double>(type: "double precision", nullable: false),
+                    MaterialBarda = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    Localizacion = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    Tematica = table.Column<string>(type: "character varying(516)", maxLength: 516, nullable: true),
+                    FechaRealizacionDeseada = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    Organizacion = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,12 +60,12 @@ namespace LPH.Infrastructure.Migrations
                 name: "comentarios",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdOrden = table.Column<int>(type: "int", nullable: false),
-                    IdUser = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdOrden = table.Column<int>(type: "integer", nullable: false),
+                    IdUser = table.Column<int>(type: "integer", nullable: false),
                     Calificacion = table.Column<float>(type: "real", maxLength: 5, nullable: false),
-                    Comentario = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true)
+                    Comentario = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -85,10 +88,13 @@ namespace LPH.Infrastructure.Migrations
                 name: "files",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdOrden = table.Column<int>(type: "int", nullable: false),
-                    UriString = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IdOrden = table.Column<int>(type: "integer", nullable: false),
+                    UriString = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Extencion = table.Column<string>(type: "text", nullable: true),
+                    SizeFile = table.Column<long>(type: "bigint", nullable: false),
+                    FileName = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

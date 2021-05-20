@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using LPH.Core.Enumerations;
+﻿using LPH.Core.Enumerations;
+using System;
 
 namespace LPH.Core.Machines
 {
@@ -47,12 +44,12 @@ namespace LPH.Core.Machines
 
         public TimeSpan? PrintTimeCurrent { get; set; }
 
-      
+
         public bool IsReady()
         {
             bool isReady = true;
 
-            if (BedTemperature.Value == BedTemperatureTarget.Value )
+            if (BedTemperature.Value == BedTemperatureTarget.Value)
             {
 
             }
@@ -60,9 +57,9 @@ namespace LPH.Core.Machines
             return isReady;
         }
 
-        
-      
-      
+
+
+
 
     }
 }

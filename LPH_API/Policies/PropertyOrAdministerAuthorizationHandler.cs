@@ -1,32 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using LPH.Core.Entities;
-using System.Security.Claims;
-using LPH.Core.Enumerations;
-using LPH.Core.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
-
-namespace LPH.Api.Controllers
+﻿namespace LPH.Api.Controllers
 {
     //public class PropertyOrAdministerAuthorizationHandler : AuthorizationHandler<PropertyOrAdministerRequirement,IEntity>
     //{
-        
 
-        
+
+
 
     //    HttpContext _httpContext;
 
     //    public PropertyOrAdministerAuthorizationHandler(HttpContext httpContext)
     //    {
     //        _httpContext = httpContext;
-         
+
     //    }
 
-      
+
 
     //    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PropertyOrAdministerRequirement requirement, IEntity resource)
     //    {
@@ -61,7 +49,7 @@ namespace LPH.Api.Controllers
     //        }
 
 
-          
+
     //        return Task.CompletedTask;
 
     //    }
@@ -70,5 +58,5 @@ namespace LPH.Api.Controllers
     //}
 
 
-    
+
 }

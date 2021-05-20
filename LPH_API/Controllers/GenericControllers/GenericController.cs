@@ -1,18 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using LPH.Api.Responses;
-using LPH.Core.Exceptions;
+﻿using LPH.Api.Responses;
 using LPH.Core.Interfaces;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System.Security.Claims;
-using LPH.Core.Enumerations;
-using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LPH.Api.Controllers
 {
@@ -22,9 +15,9 @@ namespace LPH.Api.Controllers
     /// </summary>
     /// <typeparam Nombre="TEntity">Entidad de negocio, esta debe ser una clase y poder ser instanciada, ademas implementar la interfaz <see cref="IEntity"/>.</typeparam>
     [Authorize(Roles = "Administrador")]
-   
+
     [ApiController]
-    public class GenericController<TEntity> : ControllerBase, IController<TEntity> where TEntity : class,IEntity, new()
+    public class GenericController<TEntity> : ControllerBase, IController<TEntity> where TEntity : class, IEntity, new()
     {
 
         internal readonly IRepository<TEntity> _Repository;
@@ -42,7 +35,7 @@ namespace LPH.Api.Controllers
             _service = service;
             _enviroment = enviroment;
 
-            
+
         }
 
         /// <summary>
@@ -55,7 +48,7 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get()
         {
-           
+
 
             try
             {
@@ -70,15 +63,15 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-            
-          
+
+
         }
 
         /// <summary>
@@ -87,10 +80,10 @@ namespace LPH.Api.Controllers
         /// <param Nombre="id">Numero unico de identificacion para cada Entidad.</param>
         /// <returns></returns>
         [HttpGet("{id}")]
-       
+
         [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(ApiResponse))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-        [ProducesResponseType(statusCode:StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get(int id)
         {
 
@@ -108,7 +101,7 @@ namespace LPH.Api.Controllers
                 else
                 {
 
-                     return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
 
                 }
             }
@@ -118,7 +111,7 @@ namespace LPH.Api.Controllers
                 return BadRequest(err);
             }
 
-          
+
 
 
 
@@ -136,20 +129,20 @@ namespace LPH.Api.Controllers
         {
             try
             {
-               
-                    var result = await _Repository.CreateAsync(entity);
-                    var response = new ApiResponse(result);
 
-                    _service.ClearResults();
-                    return Ok(response);
-                
+                var result = await _Repository.CreateAsync(entity);
+                var response = new ApiResponse(result);
+
+                _service.ClearResults();
+                return Ok(response);
+
             }
-           
-            catch(System.Exception err)
+
+            catch (System.Exception err)
             {
-                return  BadRequest(err.InnerException.Message);
+                return BadRequest(err.InnerException.Message);
             }
-           
+
         }
 
         /// <summary>
@@ -170,7 +163,7 @@ namespace LPH.Api.Controllers
 
                 if (result == null)
                 {
-                     return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
                 }
 
                 await _Repository.DeleteAsync(result);
@@ -184,14 +177,14 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-            
+
 
 
         }
@@ -202,8 +195,8 @@ namespace LPH.Api.Controllers
         /// <param Nombre="entity">Entidad a actualizar</param>
         /// <returns></returns>
         [HttpPut]
-        
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK,type:typeof(ApiResponse))]
+
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK, type: typeof(ApiResponse))]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Put(TEntity entity)
@@ -217,7 +210,7 @@ namespace LPH.Api.Controllers
                 var result = await _Repository.UpdateAsync(entity);
                 if (result == null)
                 {
-                     return NotFound($"{typeof(TEntity).Name} con el Id: {entity.Id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {entity.Id} no existe " });
                 }
                 var response = new ApiResponse(result);
                 return Ok(response);
@@ -228,16 +221,16 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-               
 
-           
+
+
         }
 
 
@@ -245,7 +238,7 @@ namespace LPH.Api.Controllers
         //{
         //     var sid = HttpContext.User.FindFirst(c => c.Type == ClaimTypes.Sid);
 
-           
+
 
         //    if (administerImport)
         //    {
@@ -260,11 +253,11 @@ namespace LPH.Api.Controllers
 
         //    if (sid == null)
         //    {
-                
+
         //    }
 
         //}
-       
+
         //[NonAction]
         //public string SaveFile(IFormFile file, string path)
         //{

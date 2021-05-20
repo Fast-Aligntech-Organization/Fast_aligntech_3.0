@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using LPH.Api.Responses;
+using LPH.Core.Entities;
 using LPH.Core.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using LPH.Core.Entities;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LPH.Api.Controllers
 {
@@ -21,9 +20,9 @@ namespace LPH.Api.Controllers
     public class GenericDTOsController<TEntity, TEntityDto> : ControllerBase, IController<TEntityDto> where TEntity : class, IEntity, new() where TEntityDto : class, IEntity, new()
     {
 
-       internal readonly IRepository<TEntity> _Repository;
+        internal readonly IRepository<TEntity> _Repository;
         internal readonly IAuthorizationService _authorizationService;
-       internal readonly IMapper _mapper;
+        internal readonly IMapper _mapper;
         /// <summary>
         /// Clase generica base que contiene toda la logica de interaccion de las entidades DTO del negocio de la API LPH.
         /// Su implementacion con un tipo concreto debe ser establecidad para su correcto funcionamiento.
@@ -54,12 +53,12 @@ namespace LPH.Api.Controllers
                 var result = await _Repository.FindAsync(t => t.Id == id);
                 if (result == null)
                 {
-                    return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
                 }
                 await _Repository.DeleteAsync(result);
 
 
-                return Ok(true);
+                return Ok(new { message = true });
             }
             catch (System.Exception err)
             {
@@ -67,48 +66,57 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                    return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                    return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-           
+
         }
         /// <summary>
         /// Obtiene toda la informacion solicitada a la API de una entidad Dto en concreto.
         /// </summary>
         /// <returns></returns>
-        #if !DEBUG
+#if !DEBUG
         [Authorize]
-        #endif
+#endif
         [HttpGet]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK )]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get()
         {
             try
             {
                 var result = await _Repository.GetAllAsync();
-                var resultMapper = _mapper.Map<IEnumerable<TEntityDto>>(result);
-               
 
-                return Ok(resultMapper);
+                List<TEntityDto> resulList = new List<TEntityDto>();
+
+                foreach (var item in result)
+                {
+                    var entityMapper = _mapper.Map<TEntityDto>(item);
+                    resulList.Add(entityMapper);
+                }
+
+               // var resultMapper = _mapper.Map<ICollection<TEntityDto>>(result);
+
+
+                return Ok(resulList);
             }
             catch (System.Exception err)
             {
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-           
+
 
         }
         /// <summary>
@@ -130,7 +138,7 @@ namespace LPH.Api.Controllers
 
                 if (result == null)
                 {
-                    return NotFound($"{typeof(TEntity).Name} con el Id: {id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
                 }
 
                 //var authorizationResult = await _authorizationService.AuthorizeAsync(User, result, new PropertyOrAdministerRequirement());
@@ -161,14 +169,15 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
-           
+
         }
         /// <summary>
         /// Agrega una entidad nueva a la coleccion correspondiente.
@@ -195,11 +204,11 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
 
@@ -222,20 +231,20 @@ namespace LPH.Api.Controllers
 
                 if (resultEn == null)
                 {
-                     return NotFound($"{typeof(TEntity).Name} con el Id: {entity.Id} no existe ");
+                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {entity.Id} no existe " });
                 }
                 var resultMapper = _mapper.Map<TEntity>(entity);
-                if (resultEn is LPH.Core.Entities.Usuario )
+                if (resultEn is LPH.Core.Entities.Usuario)
                 {
                     (resultMapper as Usuario).Password = (resultEn as Usuario).Password;
 
 
                 }
-               
+
 
                 var result = await _Repository.UpdateAsync(resultMapper);
                 var update = _mapper.Map<TEntityDto>(result);
-               
+
 
                 return Ok(update);
             }
@@ -245,11 +254,11 @@ namespace LPH.Api.Controllers
 
                 if (err.InnerException != null)
                 {
-                   return BadRequest($"Error: {err.Message}\n Inner Error: {err.InnerException.Message}");
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
                 }
                 else
                 {
-                     return BadRequest($"Error: {err.Message} ");
+                    return BadRequest(new { message = $"Error: {err.Message} " });
                 }
             }
         }

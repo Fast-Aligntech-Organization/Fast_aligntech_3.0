@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using LPH.Core.Interfaces;
+﻿using LPH.Core.Interfaces;
 
 namespace LPH.Core.DTOs
 {
-   public   class OrdenCommentDto:IEntity
+    public class OrdenCommentDto : IEntity
     {
         public int Id { get; set; }
 

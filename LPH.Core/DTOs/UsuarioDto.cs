@@ -19,7 +19,7 @@ namespace LPH.Core.DTOs
         public bool Suscrito { get; set; }
         public bool EsVoluntario { get; set; }
         public Guid? GoogleUUID { get; set; }
-       
+
 
     }
 }

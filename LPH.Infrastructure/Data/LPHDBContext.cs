@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿#define _TEST_
+#undef _TEST_
 using LPH.Core.Entities;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace LPH.Infrastructure.Data
@@ -13,7 +10,7 @@ namespace LPH.Infrastructure.Data
     {
         public LPHDBContext()
         {
-           
+
         }
 
         public LPHDBContext(DbContextOptions<LPHDBContext> options)
@@ -22,7 +19,7 @@ namespace LPH.Infrastructure.Data
         }
 
         public virtual DbSet<Orden> Ordenes { get; set; }
-        
+
         public virtual DbSet<Usuario> Usuarios { get; set; }
 
         public virtual DbSet<OrdenComment> Comentarios { get; set; }
@@ -31,12 +28,14 @@ namespace LPH.Infrastructure.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+#if _TEST_
+            if (!optionsBuilder.IsConfigured)
+            {
+               
+            }
+#endif
 
-//            if (!optionsBuilder.IsConfigured)
-//            {
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-//                optionsBuilder.UseSqlServer("Data Source=.\\SQLEXPRESS_1;Initial Catalog=lphdatabase;Integrated Security=True;");
-//            }
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -147,7 +146,7 @@ namespace LPH.Infrastructure.Data
                 .WithMany(p => p.Comments)
                 .HasForeignKey(e => e.IdUser)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             });
 
             modelBuilder.Entity<Orden>(entity =>
@@ -156,7 +155,7 @@ namespace LPH.Infrastructure.Data
                     .WithMany(p => p.Ordenes)
                     .HasForeignKey(d => d.IdUser)
                     .OnDelete(DeleteBehavior.Restrict);
-                   
+
 
             });
 

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LPH.Core.Enumerations
+﻿namespace LPH.Core.Enumerations
 {
-   public enum UserKind
+    public enum UserKind
     {
 
         Estudiante
-        
+
 
     }
 }

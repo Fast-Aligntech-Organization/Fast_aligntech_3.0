@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LPH.Api.Controllers;
+﻿using LPH.Api.Controllers;
 using LPH.Core.Entities;
 using LPH.Core.Interfaces;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LPH.API.Controllers
 {
@@ -21,7 +16,7 @@ namespace LPH.API.Controllers
         }
 
         // GET: MuralOrderController
-      
-      
+
+
     }
 }

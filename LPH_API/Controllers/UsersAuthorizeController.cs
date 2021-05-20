@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using LPH.Core.Entities;
 using LPH.Core.Interfaces;
 using Microsoft.AspNetCore.Hosting;
-using LPH.Core.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LPH.Api.Controllers
 {
