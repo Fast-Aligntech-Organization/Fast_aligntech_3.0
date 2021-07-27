@@ -1,0 +1,30 @@
+[
+  {
+    "Operation": 6,
+    "Description": "La identidad fue Null o no existe",
+    "IsValid": false,
+    "ValidationString": "(o) => o != null",
+    "StatusCode": 404
+  },
+  {
+    "Operation": 6,
+    "Description": "No es posible introducir un numero negativo en el campo \"Alto\"",
+    "IsValid": false,
+    "ValidationString": "(o) => o is null ? true : o.Alto >= 0",
+    "StatusCode": 400
+  },
+  {
+    "Operation": 6,
+    "Description": "No es posible introducir un numero negativo en el campo \"Ancho\"",
+    "IsValid": false,
+    "ValidationString": "(o) => o is null ? true : o.Ancho >= 0",
+    "StatusCode": 400
+  },
+  {
+    "Operation": 6,
+    "Description": "No es posible introducir una fecha antes del dia de hoy en el campo \"FechaRealizacionDeseada\"",
+    "IsValid": false,
+    "ValidationString": "(o) => o is null ? true :o.FechaRealizacionDeseada > DateTime.Now",
+    "StatusCode": 400
+  }
+]

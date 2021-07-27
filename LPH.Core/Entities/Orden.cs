@@ -48,7 +48,7 @@ namespace LPH.Core.Entities
 
                 if (Files.Count > 0)
                 {
-                    return Path.Combine(Directory.GetCurrentDirectory(), Files.First().UriString);
+                    return string.Concat("/orders/images/",Files.FirstOrDefault().FileName);
                 }
                 else
                 {
@@ -62,8 +62,9 @@ namespace LPH.Core.Entities
 
         public virtual Usuario IdUserNavigation { get; set; }
 
+        [Required]
         public virtual ICollection<OrdenComment> Comments { get; set; }
-
+        [Required]
         public virtual ICollection<File> Files { get; set; }
 
     }

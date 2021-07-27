@@ -53,8 +53,9 @@ namespace LPH.Core.Entities
 
         public Guid? GoogleUUID { get; set; }
 
+        [Required]
         public virtual ICollection<Orden> Ordenes { get; set; }
-
+        [Required]
         public virtual ICollection<OrdenComment> Comments { get; set; }
     }
 }

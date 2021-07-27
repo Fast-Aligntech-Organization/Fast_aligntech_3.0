@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Net;
-
+using System.Linq;
+using System.Collections.Generic;
+using LPH.Core.Interfaces;
+using LPH.Core.Validations;
 
 namespace LPH.Infrastructure.Filters
 {
@@ -31,9 +34,46 @@ namespace LPH.Infrastructure.Filters
                 context.Result = new BadRequestObjectResult(json);
                 context.HttpContext.Response.StatusCode = exception.Status;
                 context.ExceptionHandled = true;
+
+                return;
             }
 
-            if (context.Exception is Exception)
+            else if (context.Exception.GetType() == typeof(ValidationException))
+            {
+                ValidationException exception = (ValidationException)context.Exception;
+
+                if (string.IsNullOrEmpty(exception.Message))
+                {
+                    var result = new { Message = "Error de validacion, revisar para mas detalles", ValidacionesFallidas = exception.FailValidators };
+
+                    context.Result = new ObjectResult(result);
+                    var vali = exception.FailValidators.FirstOrDefault();
+
+                    var errfirs = (BaseValidation)vali;
+
+                    context.HttpContext.Response.StatusCode = (int)errfirs.StatusCode;
+                    context.ExceptionHandled = true;
+                }
+                else
+                {
+                    var result = new { Message = exception.Message, FailValidators = exception.FailValidators };
+
+                    context.Result = new ObjectResult(result);
+                    var vali = exception.FailValidators.FirstOrDefault();
+
+                    var errfirs = (BaseValidation)vali;
+
+                    context.HttpContext.Response.StatusCode =(int)errfirs.StatusCode;
+                    context.ExceptionHandled = true;
+                }
+
+                return;
+             
+
+               
+            }
+
+            else if (context.Exception is Exception)
             {
                 if (context.Exception.InnerException != null)
                 {

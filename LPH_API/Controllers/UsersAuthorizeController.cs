@@ -10,7 +10,7 @@ namespace LPH.Api.Controllers
     //[ApiController]
     public class UsersAuthorizeController : GenericController<Usuario>
     {
-        public UsersAuthorizeController(IRepository<Usuario> Repository, IService<Usuario> service, IWebHostEnvironment enviroment) : base(Repository, service, enviroment)
+        public UsersAuthorizeController(IRepository<Usuario> Repository, IValidatorService<Usuario> service, IWebHostEnvironment enviroment) : base(Repository, service, enviroment)
         {
         }
     }

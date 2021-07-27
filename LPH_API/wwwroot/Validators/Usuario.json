@@ -1,0 +1,11 @@
+[
+
+  {
+    "Operation": 6,
+    "Description": "La identidad fue Null o no existe",
+    "IsValid": false,
+    "ValidationString": "(o) => o != null",
+    "StatusCode": 404
+  }
+  
+]

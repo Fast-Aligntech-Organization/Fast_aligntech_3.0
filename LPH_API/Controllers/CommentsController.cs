@@ -15,7 +15,7 @@ namespace LPH.Api.Controllers
     [ApiController]
     public class CommentsController : GenericDTOsController<OrdenComment, OrdenCommentDto>
     {
-        public CommentsController(IRepository<OrdenComment> Repository, IMapper mapper, IAuthorizationService authorizationService) : base(Repository, mapper, authorizationService)
+        public CommentsController(IRepository<OrdenComment> Repository, IMapper mapper, IAuthorizationService authorizationService, IValidatorService<OrdenComment> val) : base(Repository, mapper, authorizationService,val)
         {
         }
 

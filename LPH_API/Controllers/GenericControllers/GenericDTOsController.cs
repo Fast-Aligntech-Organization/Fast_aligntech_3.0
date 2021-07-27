@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LPH.Core.Enumerations;
+using LPH.Core.Exceptions;
+using LPH.Core.Validations;
 
 namespace LPH.Api.Controllers
 {
@@ -23,6 +26,7 @@ namespace LPH.Api.Controllers
         internal readonly IRepository<TEntity> _Repository;
         internal readonly IAuthorizationService _authorizationService;
         internal readonly IMapper _mapper;
+        internal readonly IValidatorService<TEntity> _val;
         /// <summary>
         /// Clase generica base que contiene toda la logica de interaccion de las entidades DTO del negocio de la API LPH.
         /// Su implementacion con un tipo concreto debe ser establecidad para su correcto funcionamiento.
@@ -30,11 +34,12 @@ namespace LPH.Api.Controllers
         /// </summary>
         /// <param Nombre="Repository">Contiene la logica y conexion a la base de datos.</param>
         /// <param Nombre="mapper">Se encarga de mappear las propiedades entre entidades de negocio y Dtos.</param>
-        public GenericDTOsController(IRepository<TEntity> Repository, IMapper mapper, IAuthorizationService authorizationService)
+        public GenericDTOsController(IRepository<TEntity> Repository, IMapper mapper, IAuthorizationService authorizationService, IValidatorService<TEntity> val)
         {
             _Repository = Repository;
             _mapper = mapper;
             _authorizationService = authorizationService;
+            _val = val;
         }
 
         /// <summary>
@@ -48,31 +53,17 @@ namespace LPH.Api.Controllers
         [HttpDelete]
         public virtual async Task<IActionResult> Delete(int id)
         {
-            try
-            {
+            
                 var result = await _Repository.FindAsync(t => t.Id == id);
-                if (result == null)
+                if (!_val.Execute(result,Operation.Delete))
                 {
-                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
+                    throw new ValidationException($"{typeof(TEntity).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas", _val.Disapprobed);
                 }
                 await _Repository.DeleteAsync(result);
 
 
                 return Ok(new { message = true });
-            }
-            catch (System.Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+          
 
         }
         /// <summary>
@@ -87,8 +78,7 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get()
         {
-            try
-            {
+            
                 var result = await _Repository.GetAllAsync();
 
                 List<TEntityDto> resulList = new List<TEntityDto>();
@@ -103,19 +93,7 @@ namespace LPH.Api.Controllers
 
 
                 return Ok(resulList);
-            }
-            catch (System.Exception err)
-            {
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+           
 
 
         }
@@ -130,53 +108,23 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Get(int id)
         {
-            try
+
+
+            var result = await _Repository.FindAsync(t => t.Id == id);
+
+            if (!_val.Execute(result, Core.Enumerations.Operation.GetId))
             {
-                var result = await _Repository.FindAsync(t => t.Id == id);
-
-
-
-                if (result == null)
-                {
-                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {id} no existe " });
-                }
-
-                //var authorizationResult = await _authorizationService.AuthorizeAsync(User, result, new PropertyOrAdministerRequirement());
-                //if (authorizationResult.Succeeded)
-                //{
-
-                //    var resultMapper = _mapper.Map<TEntityDto>(result);
-
-                //    return Ok(resultMapper);
-                //}
-                //else
-                //{
-                //    return Unauthorized("El token proporcionado no tiene permiso para acceder a la informacion solicitada");
-                //}
-
-
-                var resultMapper = _mapper.Map<TEntityDto>(result);
-
-                return Ok(resultMapper);
-
-
-
-
+                throw new ValidationException($"{typeof(TEntity).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas", _val.Disapprobed);
             }
-            catch (System.Exception err)
-            {
+
+            var resultMapper = _mapper.Map<TEntityDto>(result);
+
+            return Ok(resultMapper);
 
 
-                if (err.InnerException != null)
-                {
 
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+
+
 
         }
         /// <summary>
@@ -190,27 +138,19 @@ namespace LPH.Api.Controllers
         public virtual async Task<IActionResult> Post(TEntityDto administer)
         {
 
-            try
-            {
+           
                 var resultMapper = _mapper.Map<TEntity>(administer);
+
+            if (!_val.Execute(resultMapper,Operation.Post))
+            {
+                throw new ValidationException($"{typeof(TEntity).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas", _val.Disapprobed);
+            }
+                
                 var result = await _Repository.CreateAsync(resultMapper);
                 var response = _mapper.Map<TEntity>(result);
 
                 return Ok(response);
-            }
-            catch (System.Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+           
 
         }
         /// <summary>
@@ -224,21 +164,18 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public virtual async Task<IActionResult> Put(TEntityDto entity)
         {
-            try
-            {
+           
 
                 var resultEn = await _Repository.FindAsync(e => e.Id == entity.Id);
 
-                if (resultEn == null)
+                if (!_val.Execute(resultEn,Operation.Put))
                 {
-                    return NotFound(new { message = $"{typeof(TEntity).Name} con el Id: {entity.Id} no existe " });
+                    throw new  ValidationException($"{typeof(TEntity).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas", _val.Disapprobed);
                 }
                 var resultMapper = _mapper.Map<TEntity>(entity);
                 if (resultEn is LPH.Core.Entities.Usuario)
                 {
                     (resultMapper as Usuario).Password = (resultEn as Usuario).Password;
-
-
                 }
 
 
@@ -247,20 +184,7 @@ namespace LPH.Api.Controllers
 
 
                 return Ok(update);
-            }
-            catch (System.Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+           
         }
     }
 }

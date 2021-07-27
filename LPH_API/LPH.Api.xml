@@ -54,7 +54,7 @@
             </summary>
             <typeparam Nombre="TEntity">Entidad de negocio, esta debe ser una clase y poder ser instanciada, ademas implementar la interfaz <see cref="T:LPH.Core.Interfaces.IEntity"/>.</typeparam>
         </member>
-        <member name="M:LPH.Api.Controllers.GenericController`1.#ctor(LPH.Core.Interfaces.IRepository{`0},LPH.Core.Interfaces.IService{`0},Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+        <member name="M:LPH.Api.Controllers.GenericController`1.#ctor(LPH.Core.Interfaces.IRepository{`0},LPH.Core.Interfaces.IValidatorService{`0},Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
             <summary>
             Clase generica base que contiene toda la logica de interaccion de las entidades del negocio de la API LPH.
             </summary>
@@ -104,7 +104,7 @@
             <typeparam Nombre="TEntity">Entidad de negocio</typeparam>
             <typeparam Nombre="TEntityDto">Entidad Dto protegida del negocio</typeparam>
         </member>
-        <member name="M:LPH.Api.Controllers.GenericDTOsController`2.#ctor(LPH.Core.Interfaces.IRepository{`0},AutoMapper.IMapper,Microsoft.AspNetCore.Authorization.IAuthorizationService)">
+        <member name="M:LPH.Api.Controllers.GenericDTOsController`2.#ctor(LPH.Core.Interfaces.IRepository{`0},AutoMapper.IMapper,Microsoft.AspNetCore.Authorization.IAuthorizationService,LPH.Core.Interfaces.IValidatorService{`0})">
             <summary>
             Clase generica base que contiene toda la logica de interaccion de las entidades DTO del negocio de la API LPH.
             Su implementacion con un tipo concreto debe ser establecidad para su correcto funcionamiento.

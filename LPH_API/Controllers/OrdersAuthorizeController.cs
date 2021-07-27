@@ -11,7 +11,7 @@ namespace LPH.API.Controllers
     //[ApiController]
     public class OrdersAuthorizeController : GenericController<Orden>
     {
-        public OrdersAuthorizeController(IRepository<Orden> Repository, IService<Orden> service, IWebHostEnvironment enviroment) : base(Repository, service, enviroment)
+        public OrdersAuthorizeController(IRepository<Orden> Repository, IValidatorService<Orden> service, IWebHostEnvironment enviroment) : base(Repository, service, enviroment)
         {
         }
 

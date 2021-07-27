@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LPH.Core.Interfaces
 {
-    public interface IService<TEntity>
+    public interface IValidatorService<TEntity>
     {
 
         IEnumerable<IValidator<TEntity>> Approbed { get; set; }
@@ -12,11 +12,11 @@ namespace LPH.Core.Interfaces
 
         IEnumerable<IValidator<TEntity>> Validators { get; }
 
-        bool ExecuteAllValidator(TEntity entity, Operation operation, bool needValidation = true);
+        bool Execute(TEntity entity, Operation operation, bool needValidation = true);
 
         void ClearResults();
 
-        bool ExecuteCustomValidator(TEntity entity, IValidator<TEntity> validator, bool needValidation = true);
+        bool Execute(TEntity entity, IValidator<TEntity> validator, bool needValidation = true);
 
 
     }

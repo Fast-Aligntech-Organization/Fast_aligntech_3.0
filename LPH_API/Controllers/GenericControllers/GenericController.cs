@@ -21,7 +21,7 @@ namespace LPH.Api.Controllers
     {
 
         internal readonly IRepository<TEntity> _Repository;
-        internal readonly IService<TEntity> _service;
+        internal readonly IValidatorService<TEntity> _service;
         internal readonly IWebHostEnvironment _enviroment;
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace LPH.Api.Controllers
         /// </summary>
         /// <param Nombre="Repository">Contiene la logica y conexion a la base de datos</param>
         /// <param Nombre="service">Contiene servicios para la comprobacion de las correctas especificaciones y restricciones delas entidades</param>
-        public GenericController(IRepository<TEntity> Repository, IService<TEntity> service, IWebHostEnvironment enviroment)
+        public GenericController(IRepository<TEntity> Repository, IValidatorService<TEntity> service, IWebHostEnvironment enviroment)
         {
             _Repository = Repository;
             _service = service;
@@ -91,7 +91,7 @@ namespace LPH.Api.Controllers
             {
                 var result = await _Repository.FindAsync(t => t.Id == id);
 
-                if (_service.ExecuteAllValidator(result, Core.Enumerations.Operation.GetId))
+                if (_service.Execute(result, Core.Enumerations.Operation.GetId))
                 {
                     var response = new ApiResponse(result);
 

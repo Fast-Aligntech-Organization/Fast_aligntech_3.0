@@ -5,6 +5,8 @@ using Npgsql;
 using LPH.Core.Entities;
 using LPH.Core.Services;
 using System.Security.Cryptography;
+using LPH.Core.Validations;
+using Newtonsoft.Json;
 
 namespace TestConnection
 {
@@ -27,74 +29,102 @@ namespace TestConnection
             }
         }
 
-            static void Main(string[] args)
+
+       
+
+        static void Main(string[] args)
         {
 
-            
-            NpgsqlConnectionStringBuilder connstring = new NpgsqlConnectionStringBuilder();
+            Usuario usuario = new Usuario();
 
-            //"Server:.;Port:5432;Database:lphdatabase;User Id:postgres;Password:Lph12345;"
-            //Server=ec2-34-193-113-223.compute-1.amazonaws.com;Port=5432;Database=depsjd3oarplor;User Id=yhuwxgiqefjtkd;Password=ff0cc7ca638abcddb64a97750050e1ab910a97b6ac1ffca2a4155fceebb1cbcd;sslmode=Require;Trust Server Certificate=true;
-            connstring.Database = "depsjd3oarplor";
-            connstring.Password = "ff0cc7ca638abcddb64a97750050e1ab910a97b6ac1ffca2a4155fceebb1cbcd";
-            connstring.Username = "yhuwxgiqefjtkd";
-            connstring.Host = "ec2-34-193-113-223.compute-1.amazonaws.com";
-        
-            connstring.Port = 5432;
+            NotNullValidation<Usuario> notNull = new NotNullValidation<Usuario>();
 
-
-
-            LPHDBContext conn = new LPHDBContext();
+            Func<Orden, bool> negativos = o =>  o is null?true:o.Alto >=0 ;
+            Func<Orden, bool> negativos2 = o => o is null ? true : o.Ancho >= 0;
+            Func<Orden, bool> fecha = o => o is null ? true : o.FechaRealizacionDeseada > DateTime.Now;
            
 
-            try
+
+
+            var result = JsonConvert.SerializeObject(notNull, Formatting.Indented, new JsonSerializerSettings()
             {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            }) ;
+
+            BaseValidationsGeneric<Usuario> test = JsonConvert.DeserializeObject<BaseValidationsGeneric<Usuario>>(result);
+
+             var nofuenulo =  test.Validation.Invoke(usuario);
 
 
-                Usuario administer = new Usuario();
+            Console.WriteLine(result);
 
-                administer.Email = @"lph_api@outlook.com";
-                administer.Telefono = "6562538679";
-                administer.Nombre = "lphadmin";
-                administer.FechaNacimiento = DateTime.Now;
-                administer.Apellido = "Principal";
-                administer.Password = Hash("Lph12345");
-                administer.Role = LPH.Core.Enumerations.RoleType.Administrator;
-                administer.GoogleUUID = null;
-                administer.Suscrito = false;
+
+
+            
+            //NpgsqlConnectionStringBuilder connstring = new NpgsqlConnectionStringBuilder();
+
+            ////"Server:.;Port:5432;Database:lphdatabase;User Id:postgres;Password:Lph12345;"
+            ////Server=ec2-34-193-113-223.compute-1.amazonaws.com;Port=5432;Database=depsjd3oarplor;User Id=yhuwxgiqefjtkd;Password=ff0cc7ca638abcddb64a97750050e1ab910a97b6ac1ffca2a4155fceebb1cbcd;sslmode=Require;Trust Server Certificate=true;
+            //connstring.Database = "depsjd3oarplor";
+            //connstring.Password = "ff0cc7ca638abcddb64a97750050e1ab910a97b6ac1ffca2a4155fceebb1cbcd";
+            //connstring.Username = "yhuwxgiqefjtkd";
+            //connstring.Host = "ec2-34-193-113-223.compute-1.amazonaws.com";
+        
+            //connstring.Port = 5432;
+
+
+
+            //LPHDBContext conn = new LPHDBContext();
+           
+
+            //try
+            //{
+
+
+            //    Usuario administer = new Usuario();
+
+            //    administer.Email = @"lph_api@outlook.com";
+            //    administer.Telefono = "6562538679";
+            //    administer.Nombre = "lphadmin";
+            //    administer.FechaNacimiento = DateTime.Now;
+            //    administer.Apellido = "Principal";
+            //    administer.Password = Hash("Lph12345");
+            //    administer.Role = LPH.Core.Enumerations.RoleType.Administrator;
+            //    administer.GoogleUUID = null;
+            //    administer.Suscrito = false;
                
 
 
-                if (conn.Database.CanConnect())
-                {
-                    conn.Usuarios.Add(administer);
-                   Console.WriteLine("Se ha agredio {0} usuarios a la db", conn.SaveChanges());
-                }
-                else
-                {
-                    Console.WriteLine("No se pudo conectar a la base de datos");
-                }
+            //    if (conn.Database.CanConnect())
+            //    {
+            //        conn.Usuarios.Add(administer);
+            //       Console.WriteLine("Se ha agredio {0} usuarios a la db", conn.SaveChanges());
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("No se pudo conectar a la base de datos");
+            //    }
 
 
-                //Console.WriteLine(connstring.ConnectionString);
+            //    //Console.WriteLine(connstring.ConnectionString);
 
-                //NpgsqlConnection npgconn = new NpgsqlConnection(connstring.ConnectionString);
+            //    //NpgsqlConnection npgconn = new NpgsqlConnection(connstring.ConnectionString);
 
-                //npgconn.Open();
+            //    //npgconn.Open();
 
-                //npgconn.Close();
-                //Console.WriteLine(conn.Database.ProviderName);
-                //Console.WriteLine("EL contexto se pudo conectar: {0}", conn.Database.CanConnect());
+            //    //npgconn.Close();
+            //    //Console.WriteLine(conn.Database.ProviderName);
+            //    //Console.WriteLine("EL contexto se pudo conectar: {0}", conn.Database.CanConnect());
 
-                //var resultado = conn.Database.EnsureCreated();
-                //Console.WriteLine(resultado);
+            //    //var resultado = conn.Database.EnsureCreated();
+            //    //Console.WriteLine(resultado);
 
-            }
-            catch (Exception err)
-            {
+            //}
+            //catch (Exception err)
+            //{
 
-                Console.WriteLine(err);
-            }
+            //    Console.WriteLine(err);
+            //}
  Console.WriteLine("Hello World!");
         }
     }
