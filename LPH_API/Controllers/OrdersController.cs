@@ -2,8 +2,10 @@
 using LPH.Api.Filters;
 using LPH.Core.DTOs;
 using LPH.Core.Entities;
+using LPH.Core.Exceptions;
 using LPH.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -26,11 +28,13 @@ namespace LPH.Api.Controllers
     {
         IConfiguration _configuration;
         IRepository<File> _fileRepository;
+        IWebHostEnvironment _env;
 
-        public OrdersController(IRepository<Orden> Repository, IRepository<File> fileRepository, IConfiguration configuration, IMapper mapper, IAuthorizationService authorizationService) : base(Repository, mapper, authorizationService)
+        public OrdersController(IRepository<Orden> Repository, IRepository<File> fileRepository, IConfiguration configuration, IMapper mapper, IAuthorizationService authorizationService, IWebHostEnvironment env,IValidatorService<Orden> val ) : base(Repository, mapper, authorizationService,val)
         {
             _configuration = configuration;
             _fileRepository = fileRepository;
+            _env = env;
         }
         /// <summary>
         /// [Authorize]
@@ -41,31 +45,27 @@ namespace LPH.Api.Controllers
         /// <param name="file"></param>
         /// <returns></returns>
         [Authorize]
-        [OwnerUser]
+        [OwnerOrden]
         [HttpPost("{id}/uploadImage")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UploadImage(int id, IFormFile file)
+        public async Task<IActionResult> UploadImage([FromRoute]int id,[FromForm] IFormFile file)
         {
 
 
 
 
-            try
-            {
+            
 
                 string extJson = _configuration["Extensions:Images"];
                 string[] extensions = extJson.Split(",");
 
                 var order = await _Repository.FindAsync(o => o.Id == id);
 
-                if (order == null)
+                if (!_val.Execute(order,Core.Enumerations.Operation.Custom))
                 {
-
-                    return NotFound(new { message = $"La orden con el Id {id} no existe!" });
-
-
+                    throw new ValidationException($"{typeof(Orden).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
                 }
 
 
@@ -85,25 +85,54 @@ namespace LPH.Api.Controllers
                             var filename = Path.GetRandomFileName() + ext;
 
 
-                            var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\images\orden", filename);
+                            var filePath = Path.Combine(_env.WebRootPath,"orders","images", filename);
 
-                            string relativePath = string.Concat(@"wwwroot\images\orden\", filename);
+                            string relativePath = Path.Combine("orders", "images", filename);
 
-                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            if (order.Files.Count > 0)
                             {
-                                await file.CopyToAsync(fileStream);
+                                var deleteOld = Path.Combine(_env.WebRootPath,order.Files.FirstOrDefault().UriString);
+
+                                if (System.IO.File.Exists(deleteOld))
+                                {
+                                    System.IO.File.Delete(deleteOld);
+                                }
+
+                                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(fileStream);
+                                }
+
+                                var oldorder = order.Files.FirstOrDefault();
+
+                                oldorder.Extencion = ext;
+                                oldorder.IdOrden = id;
+                                oldorder.SizeFile = file.Length;
+                                oldorder.FileName = filename;
+                                oldorder.UriString = relativePath;
+
+
+                            }
+                            else
+                            {
+                                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(fileStream);
+                                }
+
+
+                                File f1 = new File();
+
+                                f1.Extencion = ext;
+                                f1.IdOrden = id;
+                                f1.SizeFile = file.Length;
+                                f1.FileName = filename;
+                                f1.UriString = relativePath;
+
+                                order.Files.Add(f1);
                             }
 
-
-                            File f1 = new File();
-
-                            f1.Extencion = ext;
-                            f1.IdOrden = id;
-                            f1.SizeFile = file.Length;
-                            f1.FileName = filename;
-                            f1.UriString = relativePath;
-
-                            order.Files.Add(f1);
+                          
                             var result = await _Repository.UpdateAsync(order);
 
 
@@ -131,22 +160,6 @@ namespace LPH.Api.Controllers
                 }
 
 
-            }
-            catch (Exception err)
-            {
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
-
-
-
         }
 
         /// <summary>
@@ -161,35 +174,20 @@ namespace LPH.Api.Controllers
         public async Task<IActionResult> Comments(int id)
         {
 
-            try
-            {
+           
                 var result = await _Repository.FindAsync(o => o.Id == id);
 
-                if (result == null)
-                {
+            if (!_val.Execute(result, Core.Enumerations.Operation.Custom))
+            {
+                throw new ValidationException($"{typeof(Orden).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
+            }
 
-                    return NotFound(new { message = $"La orden con el Id: {id} no existe" });
-                }
-
-                var commentsdto = _mapper.Map<IList<OrdenCommentDto>>(result.Comments.ToList());
+            var commentsdto = _mapper.Map<IList<OrdenCommentDto>>(result.Comments.ToList());
 
 
                 return Ok(commentsdto);
 
-            }
-            catch (Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+           
 
 
         }
@@ -203,7 +201,41 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public override async Task<IActionResult> Get()
         {
-            return await base.Get();
+            try
+            {
+                var result = await _Repository.GetAllAsync();
+
+                List<OrdenDto> resulList = new List<OrdenDto>();
+
+                foreach (var item in result)
+                {
+                    var entityMapper = _mapper.Map<OrdenDto>(item);
+                    resulList.Add(entityMapper);
+                }
+
+                // var resultMapper = _mapper.Map<ICollection<TEntityDto>>(result);
+
+                  var resulListorder =  resulList.OrderByDescending(e => e.Id);
+
+                return Ok(resulList.ToList());
+            }
+            catch (System.Exception err)
+            {
+
+                if (err.InnerException != null)
+                {
+                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
+                }
+                else
+                {
+                    return BadRequest(new { message = $"Error: {err.Message} " });
+                }
+            }
+
+
+
+
+
         }
 
         /// <summary>

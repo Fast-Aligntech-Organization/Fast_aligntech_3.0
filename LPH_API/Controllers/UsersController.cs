@@ -2,6 +2,7 @@
 using LPH.Api.Filters;
 using LPH.Core.DTOs;
 using LPH.Core.Entities;
+using LPH.Core.Exceptions;
 using LPH.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +29,7 @@ namespace LPH.Api.Controllers
         public UsersController(IRepository<Usuario> Repository,
                                IMapper mapper,
                                ISecurityService securityService,
-                               IPasswordService passwordService, IAuthorizationService authorizationService) : base(Repository, mapper, authorizationService)
+                               IPasswordService passwordService, IAuthorizationService authorizationService, IValidatorService<Usuario> val) : base(Repository, mapper, authorizationService,val)
         {
             _securityService = securityService;
             _passwordService = passwordService;
@@ -89,45 +90,20 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
         public  async Task<IActionResult> GetGoogleUUID(string uuid)
         {
+            
+            var result = await _Repository.FindAsync(t => t.GoogleUUID.ToString() == uuid);
 
-
-            try
+            if (!_val.Execute(result, Core.Enumerations.Operation.Custom))
             {
-                var result = await _Repository.FindAsync(t => t.GoogleUUID.ToString() == uuid);
+                throw new ValidationException($"{typeof(Usuario).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
+            }
 
 
 
-                if (result == null)
-                {
-                    return NotFound(new { message = $"{typeof(Usuario).Name} con el UUID: {uuid} no existe " });
-                }
 
-               
-
-
-                var resultMapper = _mapper.Map<UsuarioDto>(result);
+            var resultMapper = _mapper.Map<UsuarioDto>(result);
 
                 return Ok(resultMapper);
-
-
-
-
-            }
-            catch (System.Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
-
         }
 
 
@@ -161,10 +137,9 @@ namespace LPH.Api.Controllers
         {
 
             var result = await _Repository.FindAsync(e => e.Id == entity.Id);
-
-            if (result == null)
+            if (!_val.Execute(result, Core.Enumerations.Operation.Put))
             {
-                return await base.Put(entity);
+                throw new ValidationException($"{typeof(Usuario).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
             }
             else
             {
@@ -215,12 +190,11 @@ namespace LPH.Api.Controllers
         public async Task<IActionResult> ChangePassword(int id, UserChangePassword password)
         {
 
-            try
-            {
+           
                 var result = await _Repository.FindAsync(t => t.Id == id);
-                if (result == null)
+                if (!_val.Execute(result, Core.Enumerations.Operation.Custom))
                 {
-                    return NotFound(new { message = $"{typeof(Usuario).Name} con el Id: {id} no existe " });
+                    throw new ValidationException($"{typeof(Usuario).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
                 }
 
                 if (!_passwordService.Check(result.Password, password.OldPassword))
@@ -238,20 +212,6 @@ namespace LPH.Api.Controllers
                 return Ok(new { message = "Contraseña Actualizada!" });
 
 
-            }
-            catch (System.Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
 
 
         }
@@ -270,14 +230,13 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Comments(int id)
         {
-            try
-            {
+           
 
                 var result = await _Repository.FindAsync(o => o.Id == id);
 
-                if (result == null)
+                if (!_val.Execute(result, Core.Enumerations.Operation.Custom))
                 {
-                    return NotFound(new { message = $"El usuario con el Id: {id} no existe" });
+                    throw new ValidationException($"{typeof(Usuario).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
                 }
 
                 var orderslist = _mapper.Map<IList<OrdenCommentDto>>(result.Comments.ToList());
@@ -287,20 +246,7 @@ namespace LPH.Api.Controllers
 
 
                 return Ok(orderslist);
-            }
-            catch (Exception err)
-            {
-
-
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+          
 
         }
 
@@ -316,39 +262,24 @@ namespace LPH.Api.Controllers
         [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Orders(int id)
         {
-            try
+
+            var result = await _Repository.FindAsync(o => o.Id == id);
+
+            if (!_val.Execute(result, Core.Enumerations.Operation.Custom))
             {
-                var result = await _Repository.FindAsync(o => o.Id == id);
-
-                if (result == null)
-                {
-                    return NotFound(new { message = $"El usuario con el Id: {id} no existe" });
-                }
-
-                var orderslist = _mapper.Map<IList<OrdenDto>>(result.Ordenes.ToList());
-
-
-
-                return Ok(orderslist);
-
+                throw new ValidationException($"{typeof(Usuario).Name} tiene uno o mas errores de validacion, revisar validaciones no aprobadas");
             }
-            catch (Exception err)
-            {
+
+            var orderslist = _mapper.Map<IList<OrdenDto>>(result.Ordenes.ToList());
 
 
-                if (err.InnerException != null)
-                {
-                    return BadRequest(new { message = $"Error: {err.Message}\n Inner Error: {err.InnerException.Message}" });
-                }
-                else
-                {
-                    return BadRequest(new { message = $"Error: {err.Message} " });
-                }
-            }
+
+            return Ok(orderslist);
+
+
+
+
         }
-
-
-
 
 
 

@@ -63,10 +63,12 @@ namespace LPH.Api
             #region Entidades de dominio
 
             services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
-            services.AddScoped(typeof(IService<>), typeof(BaseService<>));
+            services.AddSingleton(typeof(IValidatorService<>), typeof(BaseValidatorService<>));
             services.AddTransient(typeof(ISecurityRepositor), typeof(SecurityRepository));
             services.AddTransient<ISecurityService, SecurityServices>();
             services.AddSingleton<IPasswordService, PasswordService>();
+
+           
 
 
             #endregion
@@ -108,7 +110,7 @@ namespace LPH.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UpdateDatabase();
-                app.AddAdminister();
+                app.AddAdminister(Configuration);
             }
 
             app.UseStaticFiles();
@@ -170,11 +172,11 @@ namespace LPH.Api
 
 
             }
-
+               
             return app;
         }
 
-        public static IApplicationBuilder AddAdminister(this IApplicationBuilder app)
+        public static IApplicationBuilder AddAdminister(this IApplicationBuilder app, IConfiguration configuration)
         {
             using (var serviceScope = app.ApplicationServices
                .GetRequiredService<IServiceScopeFactory>()
@@ -187,12 +189,12 @@ namespace LPH.Api
 
                     Usuario administer = new Usuario();
 
-                    administer.Email = @"lph_api@outlook.com";
-                    administer.Telefono = "6562538679";
-                    administer.Nombre = "lphadmin";
-                    administer.FechaNacimiento = DateTime.Now;
-                    administer.Apellido = "Principal";
-                    administer.Password = password.Hash("Lph12345");
+                    administer.Email = configuration["Administer:email"].ToString();
+                    administer.Telefono = configuration["Administer:telefono"].ToString();
+                    administer.Nombre = configuration["Administer:nombre"].ToString(); ;
+                    administer.FechaNacimiento = DateTime.Parse(configuration["Administer:fechaNacimiento"].ToString());
+                    administer.Apellido = configuration["Administer:apellido"].ToString();
+                    administer.Password = password.Hash(configuration["Administer:password"].ToString());
                     administer.Role = LPH.Core.Enumerations.RoleType.Administrator;
                     administer.GoogleUUID = null;
                     administer.Suscrito = false;

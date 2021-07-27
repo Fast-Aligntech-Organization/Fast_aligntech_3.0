@@ -26,7 +26,7 @@ namespace LPH.Core.Entities
 
 
         [NotMapped]
-        public Uri UriFile { get { return new Uri(UriString); } set { UriString = value.AbsoluteUri; } }
+        public Uri UriFile { get { return new Uri(UriString) {}; } set { UriString = value.AbsolutePath; } }
 
 
         public virtual Orden IdOrdenNavigation { get; set; }

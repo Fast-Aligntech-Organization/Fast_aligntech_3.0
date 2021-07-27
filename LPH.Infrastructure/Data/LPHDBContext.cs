@@ -135,17 +135,21 @@ namespace LPH.Infrastructure.Data
 
             #endregion
 
+              
+
+           
+
             modelBuilder.Entity<OrdenComment>(entity =>
             {
                 entity.HasOne(e => e.IdOrdenNavigation)
                 .WithMany(m => m.Comments)
                 .HasForeignKey(e => e.IdOrden)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.IdUserNavigation)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(e => e.IdUser)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             });
 
@@ -154,7 +158,7 @@ namespace LPH.Infrastructure.Data
                 entity.HasOne(d => d.IdUserNavigation)
                     .WithMany(p => p.Ordenes)
                     .HasForeignKey(d => d.IdUser)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
 
             });
@@ -164,7 +168,7 @@ namespace LPH.Infrastructure.Data
                 entity.HasOne(e => e.IdOrdenNavigation)
                 .WithMany(o => o.Files)
                 .HasForeignKey(e => e.IdOrden)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             });
 
 

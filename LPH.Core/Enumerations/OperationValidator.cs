@@ -9,7 +9,9 @@
         Put,
         Post,
         Patch,
-        All
+        All,
+        Custom
+            
 
     }
 }

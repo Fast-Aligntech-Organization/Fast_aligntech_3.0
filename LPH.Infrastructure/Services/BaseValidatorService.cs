@@ -1,31 +1,43 @@
 ﻿using LPH.Core.Enumerations;
 using LPH.Core.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-//using LPH.Core.Validations;
+using Newtonsoft.Json;
+using LPH.Core.Validations;
 
 namespace LPH.Infrastructure.Services
 {
-    public class BaseService<TEntity> : IService<TEntity>
+    public class BaseValidatorService<TEntity> : IValidatorService<TEntity>
     {
         public IEnumerable<IValidator<TEntity>> Approbed { get; set; }
         public IEnumerable<IValidator<TEntity>> Disapprobed { get; set; }
         public IEnumerable<IValidator<TEntity>> Validators { get => _validators; }
+        public string PathJson { get; set; }
 
         IEnumerable<IValidator<TEntity>> _validators;
 
-        public BaseService()
+        IHostingEnvironment _env;
+      
+
+        public BaseValidatorService(IHostingEnvironment env)
         {
 
-            _validators = GetValidators();
+            _env = env;
+
+
+            PathJson = Path.Combine(_env.WebRootPath, "Validators", $"{typeof(TEntity).Name}.json");
+
+            _validators = GetValidatorsFromJson();
 
             Approbed = new List<IValidator<TEntity>>();
             Disapprobed = new List<IValidator<TEntity>>();
         }
 
-        public BaseService(IList<IValidator<TEntity>> validators)
+        public BaseValidatorService(IList<IValidator<TEntity>> validators)
         {
             _validators = validators;
 
@@ -36,7 +48,7 @@ namespace LPH.Infrastructure.Services
 
 
 
-        public virtual bool ExecuteAllValidator(TEntity entity, Operation operation, bool needValidation = true)
+        public virtual bool Execute(TEntity entity, Operation operation, bool needValidation = true)
         {
             this.ClearResults();
             var validatorForThis = _validators.Where(v => v.Operation == operation || v.Operation == Operation.All);
@@ -79,7 +91,7 @@ namespace LPH.Infrastructure.Services
 
         }
 
-        public virtual bool ExecuteCustomValidator(TEntity entity, IValidator<TEntity> validator, bool needValidation = true)
+        public virtual bool Execute(TEntity entity, IValidator<TEntity> validator, bool needValidation = true)
         {
 
             bool result = validator.Validation.Invoke(entity);
@@ -119,6 +131,33 @@ namespace LPH.Infrastructure.Services
             }
 
             return valis;
+
+        }
+
+        internal virtual IEnumerable<IValidator<TEntity>> GetValidatorsFromJson()
+        {
+            IEnumerable<BaseValidationsGeneric<TEntity>> valis = new List<BaseValidationsGeneric<TEntity>>();
+
+            if (File.Exists(PathJson))
+            {
+
+                using (StreamReader reader = File.OpenText(PathJson))
+                {
+                    var json = reader.ReadToEnd();
+                    valis = JsonConvert.DeserializeObject<List<BaseValidationsGeneric<TEntity>>>(json);
+
+                }
+
+                return valis as IEnumerable<IValidator<TEntity>>;
+
+            }
+            else
+            {
+                return valis as IEnumerable<IValidator<TEntity>>;
+            }
+
+
+
 
         }
 

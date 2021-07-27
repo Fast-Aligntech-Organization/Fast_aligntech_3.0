@@ -23,10 +23,6 @@ namespace LPH.Infrastructure.Repositories
         internal string _nameT;
 
 
-
-
-
-
         public RepositoryBase(LPH.Infrastructure.Data.LPHDBContext context)
         {
             _context = context;
@@ -96,10 +92,6 @@ namespace LPH.Infrastructure.Repositories
             return query.FirstOrDefault(expression);
         }
 
-
-
-
-
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression)
         {
             return await _entities.FirstOrDefaultAsync(expression);
@@ -138,7 +130,6 @@ namespace LPH.Infrastructure.Repositories
             return _entities.Where(expression).ToList();
         }
 
-
         public async Task<ICollection<TEntity>> FindManyAsync(Expression<Func<TEntity, bool>> expression)
         {
             return await _entities.Where(expression).ToListAsync();
@@ -170,10 +161,32 @@ namespace LPH.Infrastructure.Repositories
         public async Task<TEntity> UpdateAsync(TEntity entity)
         {
 
-            DetachLocal(entity, entity.Id);
-            // _entities.Update(entity);
-            await _context.SaveChangesAsync();
+
+            if (!IsTracked(entity))
+            {
+                DetachLocal(entity, entity.Id);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _entities.Update(entity);
+                await _context.SaveChangesAsync();
+            }
+           
+            
             return await Task.FromResult(entity);
+        }
+
+        public bool IsTracked(TEntity entity)
+        {
+            if (_context.Entry(entity).State == EntityState.Detached)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         public void DetachLocal(TEntity entity,int id)

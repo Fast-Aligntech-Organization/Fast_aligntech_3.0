@@ -43,6 +43,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="wwwroot\images\orden\" />
+    <Folder Include="wwwroot\orders\images\" />
   </ItemGroup>
 
 </Project>
