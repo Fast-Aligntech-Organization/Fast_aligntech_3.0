@@ -55,12 +55,13 @@ namespace LPH.Api
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddDbContext<LPHDBContext>(options => { options.UseNpgsql(Configuration.GetConnectionString("LPHDB_postgres")); options.UseLazyLoadingProxies(); options.EnableDetailedErrors(); }) ;
+            services.AddDbContext<LPHDBContext>(options => { options.UseNpgsql(Configuration.GetConnectionString("LPHDB_postgres_tocaltest")); options.UseLazyLoadingProxies(); options.EnableDetailedErrors(); }) ;
           //services.AddDbContext<LPHDBContext>(options => { options.UseSqlServer(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); });
 
             services.Configure<PasswordOptions>(conf => Configuration.GetSection("PasswordOptions").Bind(conf));
 
             #region Entidades de dominio
+
 
             services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
             services.AddSingleton(typeof(IValidatorService<>), typeof(BaseValidatorService<>));
@@ -110,7 +111,7 @@ namespace LPH.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UpdateDatabase();
-                app.AddAdminister(Configuration);
+                //app.AddAdminister(Configuration);
             }
 
             app.UseStaticFiles();
@@ -165,7 +166,7 @@ namespace LPH.Api
 
                     //var createscrip = context.Database.GenerateCreateScript();
 
-                    context.Database.Migrate();
+                   //context.Database.Migrate();
 
 
                 }
@@ -205,7 +206,7 @@ namespace LPH.Api
                         context.SaveChanges();
                     }
 
-                   
+                   context.Database.CloseConnection();
 
                 }
 
