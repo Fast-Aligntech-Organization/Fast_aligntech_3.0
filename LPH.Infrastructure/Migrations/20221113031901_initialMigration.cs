@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#nullable disable
+
 namespace LPH.Infrastructure.Migrations
 {
-    public partial class InitialCatalog : Migration
+    public partial class initialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,7 +19,8 @@ namespace LPH.Infrastructure.Migrations
                     Nombre = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Apellido = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Telefono = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
-                    FechaNacimiento = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    FechaNacimiento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EsVoluntario = table.Column<bool>(type: "boolean", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     TipoUsuario = table.Column<int>(type: "integer", nullable: false),
                     Role = table.Column<int>(type: "integer", nullable: false),
@@ -42,7 +45,7 @@ namespace LPH.Infrastructure.Migrations
                     MaterialBarda = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     Localizacion = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     Tematica = table.Column<string>(type: "character varying(516)", maxLength: 516, nullable: true),
-                    FechaRealizacionDeseada = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    FechaRealizacionDeseada = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Organizacion = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -53,7 +56,7 @@ namespace LPH.Infrastructure.Migrations
                         column: x => x.IdUser,
                         principalTable: "usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,13 +78,13 @@ namespace LPH.Infrastructure.Migrations
                         column: x => x.IdOrden,
                         principalTable: "ordenes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_comentarios_usuarios_IdUser",
                         column: x => x.IdUser,
                         principalTable: "usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -104,7 +107,7 @@ namespace LPH.Infrastructure.Migrations
                         column: x => x.IdOrden,
                         principalTable: "ordenes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

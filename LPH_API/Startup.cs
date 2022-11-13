@@ -23,6 +23,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Design;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using LPH.Core.Entities;
+using System.Linq;
 
 namespace LPH.Api
 {
@@ -60,6 +61,7 @@ namespace LPH.Api
 
             services.Configure<PasswordOptions>(conf => Configuration.GetSection("PasswordOptions").Bind(conf));
 
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             #region Entidades de dominio
 
 
@@ -111,7 +113,7 @@ namespace LPH.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UpdateDatabase();
-                //app.AddAdminister(Configuration);
+                app.AddAdminister(Configuration);
             }
 
             app.UseStaticFiles();
@@ -200,7 +202,10 @@ namespace LPH.Api
                     administer.GoogleUUID = null;
                     administer.Suscrito = false;
 
-                    if (context.Usuarios.FirstOrDefaultAsync(u => u.Email == administer.Email) == null)
+                    var user = context.Usuarios.FirstOrDefault(u => u.Email == administer.Email);
+                    
+
+                    if (user == null)
                     {
                         context.Usuarios.Add(administer);
                         context.SaveChanges();
