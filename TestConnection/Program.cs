@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using LPH.Infrastructure.Data;
+using Fast.Infrastructure.Data;
 using Npgsql;
-using LPH.Core.Entities;
-using LPH.Core.Services;
+using Fast.Core.Entities;
+using Fast.Core.Services;
 using System.Security.Cryptography;
-using LPH.Core.Validations;
+using Fast.Core.Validations;
 using Newtonsoft.Json;
 
 namespace TestConnection
@@ -89,7 +89,7 @@ namespace TestConnection
             //    administer.FechaNacimiento = DateTime.Now;
             //    administer.Apellido = "Principal";
             //    administer.Password = Hash("Lph12345");
-            //    administer.Role = LPH.Core.Enumerations.RoleType.Administrator;
+            //    administer.Role = Fast.Core.Enumerations.RoleType.Administrator;
             //    administer.GoogleUUID = null;
             //    administer.Suscrito = false;
                
