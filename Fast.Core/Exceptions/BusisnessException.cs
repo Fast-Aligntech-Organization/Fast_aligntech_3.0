@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Fast.Core.Exceptions
+namespace Fast.Core
 {
 
     [Serializable]

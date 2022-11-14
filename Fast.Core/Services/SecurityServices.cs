@@ -1,5 +1,4 @@
-﻿using Fast.Core.Entities;
-using Fast.Core.Interfaces;
+﻿using Fast.Core;
 using System.Threading.Tasks;
 
 
@@ -7,21 +6,27 @@ namespace Fast.Core.Services
 {
     public class SecurityServices : ISecurityService
     {
-        private readonly ISecurityRepositor _repository;
+        private readonly IAccountRepository _repository;
 
-        public SecurityServices(ISecurityRepositor unitOfWork)
+        public SecurityServices(IAccountRepository unitOfWork)
         {
             _repository = unitOfWork;
         }
 
-        public async Task<Usuario> GetLoginByCredentials(UserLogin userLogin)
+        public async Task<PrivateUser> GetLoginByCredentials(UserLogin userLogin)
         {
             return await _repository.GetLoginByCredentials(userLogin);
         }
 
-        public async Task RegisterUser(Usuario security)
+        public async Task<bool> RegisterUser(UserSignUp user)
         {
-            await _repository.RegisterUser(security);
+            var privateUserResult = await _repository.RegisterUser(user);
+            if (privateUserResult is not null) return true;
+            
+            return false;
+           
         }
+
+       
     }
 }

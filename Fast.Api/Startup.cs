@@ -6,24 +6,13 @@ using Fast.Infrastructure.Options;
 using Fast.Infrastructure.Repositories;
 using Fast.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
-using System.IO;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 
-using Npgsql.EntityFrameworkCore.PostgreSQL;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Design;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using Fast.Core.Entities;
-using System.Linq;
+
 
 namespace Fast.Api
 {
@@ -56,7 +45,7 @@ namespace Fast.Api
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddDbContext<LPHDBContext>(options => { options.UseNpgsql(Configuration.GetConnectionString("LPHDB_postgres_tocaltest")); options.UseLazyLoadingProxies(); options.EnableDetailedErrors(); }) ;
+            services.AddDbContext<ApplicationDbContext>(options => { options.UseNpgsql(Configuration.GetConnectionString("LPHDB_postgres_tocaltest")); options.UseLazyLoadingProxies(); options.EnableDetailedErrors(); }) ;
           //services.AddDbContext<LPHDBContext>(options => { options.UseSqlServer(Configuration.GetConnectionString("LPHDB")); options.UseLazyLoadingProxies(); });
 
             services.Configure<PasswordOptions>(conf => Configuration.GetSection("PasswordOptions").Bind(conf));
@@ -67,7 +56,7 @@ namespace Fast.Api
 
             services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
             services.AddSingleton(typeof(IValidatorService<>), typeof(BaseValidatorService<>));
-            services.AddTransient(typeof(ISecurityRepositor), typeof(SecurityRepository));
+            services.AddTransient(typeof(ISecurityRepositor), typeof(AccountRepository));
             services.AddTransient<ISecurityService, SecurityServices>();
             services.AddSingleton<IPasswordService, PasswordService>();
 
@@ -78,7 +67,7 @@ namespace Fast.Api
 
             services.AddSwaggerGen(doc =>
             {
-                doc.SwaggerDoc("v1", new OpenApiInfo { Title = "LPH API", Version = "v1" });
+                doc.SwaggerDoc("v1", new OpenApiInfo { Title = "Fast Api", Version = "v1" });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 doc.IncludeXmlComments(xmlPath);
@@ -126,7 +115,7 @@ namespace Fast.Api
 
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "LPH API Documentation");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Fast Api Documentation");
 
 
             });
@@ -161,7 +150,7 @@ namespace Fast.Api
                .GetRequiredService<IServiceScopeFactory>()
                 .CreateScope())
             {
-                using (var context = serviceScope.ServiceProvider.GetService<LPHDBContext>())
+                using (var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                 {
 
                     //var result = context.Database.CanConnect();
@@ -185,29 +174,33 @@ namespace Fast.Api
                .GetRequiredService<IServiceScopeFactory>()
                 .CreateScope())
             {
-                using (var context = serviceScope.ServiceProvider.GetService<LPHDBContext>())
+                using (var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                 {
 
                     var password = serviceScope.ServiceProvider.GetService<IPasswordService>();
 
-                    Usuario administer = new Usuario();
+                    PrivateUser administer = new PrivateUser();
+
 
                     administer.Email = configuration["Administer:email"].ToString();
-                    administer.Telefono = configuration["Administer:telefono"].ToString();
-                    administer.Nombre = configuration["Administer:nombre"].ToString(); ;
-                    administer.FechaNacimiento = DateTime.Parse(configuration["Administer:fechaNacimiento"].ToString());
-                    administer.Apellido = configuration["Administer:apellido"].ToString();
-                    administer.Password = password.Hash(configuration["Administer:password"].ToString());
-                    administer.Role = Fast.Core.Enumerations.RoleType.Administrator;
-                    administer.GoogleUUID = null;
-                    administer.Suscrito = false;
+                    administer.PhoneNumber = configuration["Administer:telefono"].ToString();
+                    administer.Name = configuration["Administer:nombre"].ToString(); ;
+                    administer.Birthday = DateTime.Parse(configuration["Administer:fechaNacimiento"].ToString());
+                    administer.Lastname = configuration["Administer:apellido"].ToString();
+                    administer.PasswordHash = password.Hash(configuration["Administer:password"].ToString());
+                    administer.Clock = configuration["Administer:clock"];
+                    var user = context.Users.FirstOrDefault(u => u.Email == administer.Email);
 
-                    var user = context.Usuarios.FirstOrDefault(u => u.Email == administer.Email);
-                    
+                    IdentityRole role = new IdentityRole();
+
+                   
+
+
 
                     if (user == null)
                     {
-                        context.Usuarios.Add(administer);
+                        context.Users.Add(administer);
+
                         context.SaveChanges();
                     }
 

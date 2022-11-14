@@ -1,12 +1,9 @@
-﻿using Fast.Core.Exceptions;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
 using System.Net;
-using System.Linq;
-using System.Collections.Generic;
-using Fast.Core.Interfaces;
-using Fast.Core.Validations;
+
+
 
 namespace Fast.Infrastructure.Filters
 {
@@ -37,42 +34,7 @@ namespace Fast.Infrastructure.Filters
 
                 return;
             }
-
-            else if (context.Exception.GetType() == typeof(ValidationException))
-            {
-                ValidationException exception = (ValidationException)context.Exception;
-
-                if (string.IsNullOrEmpty(exception.Message))
-                {
-                    var result = new { Message = "Error de validacion, revisar para mas detalles", ValidacionesFallidas = exception.FailValidators };
-
-                    context.Result = new ObjectResult(result);
-                    var vali = exception.FailValidators.FirstOrDefault();
-
-                    var errfirs = (BaseValidation)vali;
-
-                    context.HttpContext.Response.StatusCode = (int)errfirs.StatusCode;
-                    context.ExceptionHandled = true;
-                }
-                else
-                {
-                    var result = new { Message = exception.Message, FailValidators = exception.FailValidators };
-
-                    context.Result = new ObjectResult(result);
-                    var vali = exception.FailValidators.FirstOrDefault();
-
-                    var errfirs = (BaseValidation)vali;
-
-                    context.HttpContext.Response.StatusCode =(int)errfirs.StatusCode;
-                    context.ExceptionHandled = true;
-                }
-
-                return;
-             
-
-               
-            }
-
+         
             else if (context.Exception is Exception)
             {
                 if (context.Exception.InnerException != null)

@@ -1,4 +1,4 @@
-﻿using Fast.Core.Interfaces;
+﻿using Fast.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,25 +11,27 @@ using System.Threading.Tasks;
 
 namespace Fast.Infrastructure.Repositories
 {
-    public class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity :  class, IEntity, new()
+    public class RepositoryBase<TEntity,TKey> : IRepository<TEntity,TKey> where TEntity :  class, IEntity<TKey>, new() where TKey : IEquatable<TKey>
     {
 
         protected internal readonly DbContext _context;
 
         protected internal DbSet<TEntity> _entities;
 
-        protected internal readonly bool _isPlural;
+        protected internal List<string> _virtualProperties;
+
+   
 
         internal string _nameT;
 
 
-        public RepositoryBase(Fast.Infrastructure.Data.LPHDBContext context)
+        public RepositoryBase(Fast.Data.ApplicationDbContext context)
         {
             _context = context;
             _entities = _context.Set<TEntity>();
             _nameT = new TEntity().GetType().Name;
-            _isPlural = _nameT.EndsWith("s");
 
+            _virtualProperties = typeof(TEntity).GetProperties().Where(x => !x.GetAccessors()[0].IsFinal && x.GetAccessors()[0].IsVirtual).Select(p => p.Name).ToList();
 
 
 
@@ -67,17 +69,17 @@ namespace Fast.Infrastructure.Repositories
             _context.SaveChanges();
         }
 
-        public async Task DeleteAsync(TEntity entity)
+        public async Task<bool> DeleteAsync(TEntity entity)
         {
             await Task.Run(() => { _entities.Remove(entity); });
-            await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync() > 0;
 
         }
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression)
         {
 
-            return _entities.FirstOrDefault(expression);
+            return Include(_entities).FirstOrDefault(expression);
         }
 
         public TEntity Find(Expression<Func<TEntity, bool>> expression, params string[] includes)
@@ -89,12 +91,13 @@ namespace Fast.Infrastructure.Repositories
                 query = query.Include(include);
             }
 
+
             return query.FirstOrDefault(expression);
         }
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.FirstOrDefaultAsync(expression);
+            return await Include(_entities).FirstOrDefaultAsync(expression);
         }
 
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> expression, params string[] includes)
@@ -127,27 +130,28 @@ namespace Fast.Infrastructure.Repositories
 
         public ICollection<TEntity> FindMany(Expression<Func<TEntity, bool>> expression)
         {
-            return _entities.Where(expression).ToList();
+            return Include(_entities).Where(expression).ToList();
+            
         }
 
         public async Task<ICollection<TEntity>> FindManyAsync(Expression<Func<TEntity, bool>> expression)
         {
-            return await _entities.Where(expression).ToListAsync();
+            return await Include(_entities).Where(expression).ToListAsync();
         }
 
         public ICollection<TEntity> GetAll()
         {
-            return _entities.ToList();
+            return Include(_entities).ToList();
         }
 
         public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            return await _entities.ToListAsync();
+            return await Include(_entities).ToListAsync();
         }
 
         public async Task<ICollection<TResult>> GetAllAsync<TResult>(Expression<Func<TEntity, TResult>> selector)
         {
-            var result = await _entities.Select(selector).ToListAsync();
+            var result = await Include(_entities).Select(selector).ToListAsync();
             return result;
         }
 
@@ -189,9 +193,9 @@ namespace Fast.Infrastructure.Repositories
             }
         }
 
-        public void DetachLocal(TEntity entity,int id)
+        public void DetachLocal(TEntity entity,TKey id)
         {
-            var detachedEntity = _entities.FirstOrDefault(en => en.Id == id);
+            var detachedEntity = _entities.FirstOrDefault(en => en.Id.Equals(id));
 
             if (detachedEntity != null)
             {
@@ -201,6 +205,50 @@ namespace Fast.Infrastructure.Repositories
             _context.Entry<TEntity>(entity).State = EntityState.Modified;
 
         }
+
+        private IQueryable<TEntity> Include(DbSet<TEntity> enties)
+        {
+            IQueryable<TEntity> iq = enties.AsQueryable();
+            foreach (var item in _virtualProperties)
+            {
+                iq = iq.Include(item);
+            }
+
+            return iq;
+        }
+        public Task<TEntity> FindAndSelectAsync<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>> where)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ICollection<TEntity>> FindManyAndSelectAsync<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>> where)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IRepository<TEntity,TKey>.Delete(TEntity entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TEntity FindAndSelect<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>> where)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICollection<TEntity> FindManyAndSelect<TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>> where)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<TEntity> FindByKeyAsync(TKey tkey)
+        {
+            return await Include(_entities).FirstOrDefaultAsync(o => o.Id.Equals(tkey));
+
+        }
+
+
+
 
         #region Anulado
         //public virtual async Task<bool> Delete(int id)

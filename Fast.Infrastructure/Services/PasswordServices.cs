@@ -9,8 +9,8 @@ namespace Fast.Infrastructure.Services
 {
     public class PasswordService : IPasswordService
     {
-        private readonly PasswordOptions _options;
-        public PasswordService(IOptions<PasswordOptions> options)
+        private readonly PasswordOptionsHash _options;
+        public PasswordService(IOptions<PasswordOptionsHash> options)
         {
             _options = options.Value;
         }

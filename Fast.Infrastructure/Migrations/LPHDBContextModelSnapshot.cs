@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Fast.Infrastructure.Migrations
 {
-    [DbContext(typeof(LPHDBContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     partial class LPHDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

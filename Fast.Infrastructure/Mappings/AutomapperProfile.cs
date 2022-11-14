@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using Fast.Core.DTOs;
-using Fast.Core.Entities;
+using Fast.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +11,9 @@ namespace Fast.Infrastructure.Mappings
     {
         public AutomapperProfile()
         {
-            AddProfileEntityToDto("Fast.Core.Entities", "Fast.Core.DTOs", "Dto");
-            AddProfileDtoToEntity("Fast.Core.Entities", "Fast.Core.DTOs", "Dto");
-            CreateMap<UsuarioSignUp, Usuario>();
+            AddProfileEntityToDto("Fast.Core.Models", "Fast.Core.PublicModels", "Private");
+            AddProfileDtoToEntity("Fast.Core.PublicModels", "Fast.Core.Models", "Private");
+            CreateMap<UserSignUp, PrivateUser>();
 
         }
 
@@ -71,7 +70,7 @@ namespace Fast.Infrastructure.Mappings
 
         private static IEnumerable<Type> GetNamespacesInAssembly(string namespaces)
         {
-            IEnumerable<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("LPH"));
+            IEnumerable<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Fast"));
             List<Type> types = new List<Type>();
             foreach (var item in assemblies)
             {

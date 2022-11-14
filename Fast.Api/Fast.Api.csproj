@@ -5,6 +5,7 @@
     <RootNombrespace>Fast.Api</RootNombrespace>
     <AssemblyNombre>Fast.Api</AssemblyNombre>
     <UserSecretsId>b929359a-f9c2-4705-acf8-dd78cd1673da</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,12 +13,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\**" />
+    <Content Remove="Data\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <None Remove="Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Fast.Core\Fast.Core.csproj" />
     <ProjectReference Include="..\Fast.Infrastructure\Fast.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
     <Folder Include="wwwroot\images\orden\" />
     <Folder Include="wwwroot\orders\images\" />
   </ItemGroup>
@@ -33,6 +40,13 @@
     <PackageReference Include="Microsoft.OpenApi" Version="1.4.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Fast.Core" />
+    <Using Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <Using Include="Microsoft.EntityFrameworkCore" />
+    <Using Include="using Microsoft.AspNetCore.Identity" />
   </ItemGroup>
 
 </Project>
