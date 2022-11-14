@@ -1,7 +1,7 @@
 ﻿namespace Fast.Infrastructure.Options
 {
 
-    public class PasswordOptions
+    public class PasswordOptionsHash
     {
         public int SaltSize { get; set; }
         public int KeySize { get; set; }

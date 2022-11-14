@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fast.Core;
-using Fast.Data;
 
 namespace Fast.Infrastructure.Repositories
 {

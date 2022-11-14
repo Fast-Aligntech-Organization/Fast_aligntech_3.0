@@ -1,8 +1,7 @@
-using Fast.Core.Interfaces;
+
 using Fast.Core.Services;
 using Fast.Infrastructure.Data;
 using Fast.Infrastructure.Filters;
-using Fast.Infrastructure.Options;
 using Fast.Infrastructure.Repositories;
 using Fast.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
